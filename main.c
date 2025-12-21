@@ -3,6 +3,13 @@
 #include <unistd.h>
 #include <string.h>
 
+/**
+ * main - main function
+ *
+ * @void: dont receve anything
+ *
+ * Return: nothing
+ */
 int main(void)
 {
 int inter = isatty(STDIN_FILENO);
