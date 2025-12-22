@@ -111,6 +111,7 @@ else if (pid > 0)
 else
 {
 fprintf(stderr, "./hsh: 1: %s: not found\n", argv[0]);
+if (!inter)
 exit(127);
 }
 free(found);
