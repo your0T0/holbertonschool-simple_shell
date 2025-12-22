@@ -77,6 +77,8 @@ break;
 if (path == NULL || path[0] == '\0')
 {
 	fprintf(stderr, "./hsh: 1: %s: not found\n", argv[0]);
+	if (!inter)
+	exit(127);
 	continue;
 }
 path_copy = strdup(path);
