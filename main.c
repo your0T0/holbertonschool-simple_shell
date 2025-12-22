@@ -49,74 +49,88 @@ token = strtok(NULL, " \t");
 argv[i] = NULL;
 if (strchr(argv[0], '/') != NULL)
 {
-pid = fork();
-if (pid == 0)
-{
-execve(argv[0], argv, environ);
-perror("execve");
-exit(1);
-}
-else if (pid > 0)
-	wait(NULL);
-}
-else
-{
-char *path = NULL;
-int j;
-char *path_copy;
-char *dir;
-char *found = NULL;
-for (j = 0; environ[j] != NULL; j++)
-{
-if (strncmp(environ[j], "PATH=", 5) == 0)
-{
-path = environ[j] + 5;
-break;
-}
-}
-if (path == NULL || path[0] == '\0')
-{
-	fprintf(stderr, "./hsh: 1: %s: not found\n", argv[0]);
-	if (!inter)
-	exit(127);
-	continue;
-}
-path_copy = strdup(path);
-dir = strtok(path_copy, ":");
-while (dir != NULL)
-{
-char full[1024];
-if (dir[0] == '\0')
-snprintf(full, sizeof(full), "./%s", argv[0]);
-else
-snprintf(full, sizeof(full), "%s/%s", dir, argv[0]);
-if (access(full, X_OK) == 0)
-{
-found = strdup(full);
-break;
-}
-dir = strtok(NULL, ":");
-}
-free(path_copy);
-if (found != NULL)
-{
-pid = fork();
-if (pid == 0)
-{
-execve(found, argv, environ);
-perror("execve");
-exit(1);
-}
-else if (pid > 0)
-	wait(NULL);
+    if (access(argv[0], X_OK) != 0)
+    {
+        fprintf(stderr, "./hsh: 1: %s: not found\n", argv[0]);
+        if (!inter)
+            exit(127);
+        continue;
+    }
+
+    pid = fork();
+    if (pid == 0)
+    {
+        execve(argv[0], argv, environ);
+        perror("execve");
+        exit(1);
+    }
+    else if (pid > 0)
+        wait(NULL);
 }
 else
 {
-fprintf(stderr, "./hsh: 1: %s: not found\n", argv[0]);
-if (!inter)
-exit(127);
-}
-free(found);
+    char *path = NULL;
+    int j;
+    char *path_copy;
+    char *dir;
+    char *found = NULL;
+    char full[1024]; /* <-- هنا مكانها الصح */
+
+    for (j = 0; environ[j] != NULL; j++)
+    {
+        if (strncmp(environ[j], "PATH=", 5) == 0)
+        {
+            path = environ[j] + 5;
+            break;
+        }
+    }
+
+    if (path == NULL || path[0] == '\0')
+    {
+        fprintf(stderr, "./hsh: 1: %s: not found\n", argv[0]);
+        if (!inter)
+            exit(127);
+        continue;
+    }
+
+    path_copy = strdup(path);
+    dir = strtok(path_copy, ":");
+
+    while (dir != NULL)
+    {
+        if (dir[0] == '\0')
+            snprintf(full, sizeof(full), "./%s", argv[0]);
+        else
+            snprintf(full, sizeof(full), "%s/%s", dir, argv[0]);
+
+        if (access(full, X_OK) == 0)
+        {
+            found = strdup(full);
+            break;
+        }
+        dir = strtok(NULL, ":");
+    }
+    free(path_copy);
+
+    if (found != NULL)
+    {
+        pid = fork();
+        if (pid == 0)
+        {
+            execve(found, argv, environ);
+            perror("execve");
+            exit(1);
+        }
+        else if (pid > 0)
+            wait(NULL);
+        free(found);
+    }
+    else
+    {
+        fprintf(stderr, "./hsh: 1: %s: not found\n", argv[0]);
+        if (!inter)
+            exit(127);
+    }
 }
 }
 free(line);
