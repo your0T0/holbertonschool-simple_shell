@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/wait.h>
-
+extern char **environ;
 /**
  * main - main function
  *
@@ -16,10 +16,12 @@ char *line = NULL;
 size_t len = 0;
 char *argv[64];
 int i = 0;
+int sp;
 char *token;
 pid_t pid;
 while (1)
 {
+sp = 1;
 if (inter)
 	printf("($) ");
 if (getline(&line, &len, stdin) == -1)
@@ -27,6 +29,16 @@ if (getline(&line, &len, stdin) == -1)
 line[strcspn(line, "\n")] = '\0';
 if (line[0] == '\0')
 	continue;
+for (i = 0; line[i] != '\0'; i++)
+{
+if (line[i] != ' ')
+{
+sp = 0;
+break;
+}
+}
+if (sp)
+continue;
 token = strtok(line, " ");
 i = 0;
 while (token != NULL)
@@ -38,7 +50,7 @@ argv[i] = NULL;
 pid = fork();
 if (pid == 0)
 {
-execve(argv[0], argv, NULL);
+execve(argv[0], argv, environ);
 perror("execve");
 exit(1);
 }
