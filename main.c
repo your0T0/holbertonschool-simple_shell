@@ -61,7 +61,16 @@ else if (pid > 0)
 }
 else
 {
-char *path = getenv("PATH");
+char *path = NULL;
+int j;
+for (j = 0; environ[j] != NULL; j++)
+{
+if (strncmp(environ[j], "PATH=", 5) == 0)
+{
+path = environ[j] + 5;
+break;
+}
+}
 char *path_copy;
 char *dir;
 char *found = NULL;
