@@ -64,6 +64,19 @@ if (strcmp(argv[0], "exit") == 0)
     free(line);
     exit(last_status);
 }
+if (strcmp(argv[0], "env") == 0)
+{
+    int k = 0;
+
+    while (environ[k] != NULL)
+    {
+        write(1, environ[k], strlen(environ[k]));
+        write(1, "\n", 1);
+        k++;
+    }
+    last_status = 0;
+    continue;
+}
 if (strchr(argv[0], '/') != NULL)
 {
     if (access(argv[0], X_OK) != 0)
