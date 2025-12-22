@@ -13,6 +13,7 @@ int main(int ac, char **av)
 {
     int inter;
     unsigned long cmd_n;
+    int last_status;
     char *line;
     size_t len;
     char *argv[64];
@@ -24,11 +25,11 @@ int main(int ac, char **av)
     (void)ac;
 
     cmd_n = 0;
+    last_status = 0;
     inter = isatty(STDIN_FILENO);
     line = NULL;
     len = 0;
-    i = 0;
-while (1)
+    while (1)
 {
 sp = 1;
 if (inter)
@@ -63,8 +64,7 @@ if (strchr(argv[0], '/') != NULL)
     if (access(argv[0], X_OK) != 0)
     {
         dprintf(2, "%s: %lu: %s: not found\n", av[0], cmd_n, argv[0]);
-        if (!inter)
-            exit(127);
+        last_status = 127;
         continue;
     }
 
@@ -76,7 +76,16 @@ if (strchr(argv[0], '/') != NULL)
         exit(1);
     }
     else if (pid > 0)
-        wait(NULL);
+    {
+        int status;
+
+        waitpid(pid, &status, 0);
+        if (WIFEXITED(status))
+            last_status = WEXITSTATUS(status);
+        else
+            last_status = 1;
+    }
+    continue;
 }
 else
 {
@@ -85,7 +94,7 @@ else
     char *path_copy;
     char *dir;
     char *found = NULL;
-    char full[1024]; /* <-- هنا مكانها الصح */
+    char full[1024];
 
     for (j = 0; environ[j] != NULL; j++)
     {
@@ -99,8 +108,7 @@ else
     if (path == NULL)
 {
     dprintf(2, "%s: %lu: %s: not found\n", av[0], cmd_n, argv[0]);
-    if (!inter)
-        exit(127);
+    last_status = 127;
     continue;
 }
 
@@ -118,14 +126,21 @@ if (path[0] == '\0')
             perror("execve");
             exit(1);
         }
-        else if (pid > 0)
-            wait(NULL);
-        continue;
-    }
+       else if (pid > 0)
+{
+    int status;
+
+    waitpid(pid, &status, 0);
+    if (WIFEXITED(status))
+        last_status = WEXITSTATUS(status);
+    else
+        last_status = 1;
+}
+continue;    
+}
 
     dprintf(2, "%s: %lu: %s: not found\n", av[0], cmd_n, argv[0]);
-    if (!inter)
-        exit(127);
+    last_status = 127;
     continue;
 }
 
@@ -157,18 +172,26 @@ if (path[0] == '\0')
             perror("execve");
             exit(1);
         }
-        else if (pid > 0)
-            wait(NULL);
-        free(found);
+       else if (pid > 0)
+{
+    int status;
+
+    waitpid(pid, &status, 0);
+    if (WIFEXITED(status))
+        last_status = WEXITSTATUS(status);
+    else
+        last_status = 1;
+}
+    free(found);
     }
     else
     {
         dprintf(2, "%s: %lu: %s: not found\n", av[0], cmd_n, argv[0]);
-        if (!inter)
-            exit(127);
+        last_status = 127;
+continue;
     }
 }
 }
 free(line);
-return (0);
+return (last_status);
 }
