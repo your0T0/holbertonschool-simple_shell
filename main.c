@@ -63,6 +63,9 @@ else
 {
 char *path = NULL;
 int j;
+char *path_copy;
+char *dir;
+char *found = NULL;
 for (j = 0; environ[j] != NULL; j++)
 {
 if (strncmp(environ[j], "PATH=", 5) == 0)
@@ -71,9 +74,6 @@ path = environ[j] + 5;
 break;
 }
 }
-char *path_copy;
-char *dir;
-char *found = NULL;
 if (path == NULL)
 	continue;
 path_copy = strdup(path);
