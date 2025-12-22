@@ -39,12 +39,12 @@ break;
 }
 if (sp)
 continue;
-token = strtok(line, " ");
+token = strtok(line, " \t");
 i = 0;
 while (token != NULL)
 {
 argv[i++] = token;
-token = strtok(NULL, " ");
+token = strtok(NULL, " \t");
 }
 argv[i] = NULL;
 pid = fork();
