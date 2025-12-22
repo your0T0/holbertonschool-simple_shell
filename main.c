@@ -72,6 +72,9 @@ dir = strtok(path_copy, ":");
 while (dir != NULL)
 {
 char full[1024];
+if (dir[0] == '\0')
+snprintf(full, sizeof(full), "./%s", argv[0]);
+else
 snprintf(full, sizeof(full), "%s/%s", dir, argv[0]);
 if (access(full, X_OK) == 0)
 {
