@@ -47,6 +47,8 @@ argv[i++] = token;
 token = strtok(NULL, " \t");
 }
 argv[i] = NULL;
+if (strchr(argv[0], '/') != NULL)
+{
 pid = fork();
 if (pid == 0)
 {
@@ -56,6 +58,45 @@ exit(1);
 }
 else if (pid > 0)
 	wait(NULL);
+}
+else
+{
+char *path = getenv("PATH");
+char *path_copy;
+char *dir;
+char *found = NULL;
+if (path == NULL)
+	continue;
+path_copy = strdup(path);
+dir = strtok(path_copy, ":");
+while (dir != NULL)
+{
+char full[1024];
+snprintf(full, sizeof(full), "%s/%s", dir, argv[0]);
+if (access(full, X_OK) == 0)
+{
+found = strdup(full);
+break;
+}
+dir = strtok(NULL, ":");
+}
+free(path_copy);
+if (found != NULL)
+{
+pid = fork();
+if (pid == 0)
+{
+execve(found, argv, environ);
+perror("execve");
+exit(1);
+}
+else if (pid > 0)
+	wait(NULL);
+}
+else
+fprintf(stderr, "./hsh: 1: %s: not found\n", argv[0]);
+free(found);
+}
 }
 free(line);
 return (0);
