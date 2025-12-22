@@ -9,16 +9,25 @@ extern char **environ;
  *
  * Return: 0
  */
-int main(void)
+int main(int ac, char **av)
 {
-int inter = isatty(STDIN_FILENO);
-char *line = NULL;
-size_t len = 0;
-char *argv[64];
-int i = 0;
-int sp;
-char *token;
-pid_t pid;
+    int inter;
+    unsigned long cmd_n;
+    char *line;
+    size_t len;
+    char *argv[64];
+    int i;
+    int sp;
+    char *token;
+    pid_t pid;
+
+    (void)ac;
+
+    cmd_n = 0;
+    inter = isatty(STDIN_FILENO);
+    line = NULL;
+    len = 0;
+    i = 0;
 while (1)
 {
 sp = 1;
@@ -38,7 +47,9 @@ break;
 }
 }
 if (sp)
-continue;
+    continue;
+
+cmd_n++;
 token = strtok(line, " \t");
 i = 0;
 while (token != NULL)
@@ -51,7 +62,7 @@ if (strchr(argv[0], '/') != NULL)
 {
     if (access(argv[0], X_OK) != 0)
     {
-        fprintf(stderr, "./hsh: 1: %s: not found\n", argv[0]);
+        dprintf(2, "%s: %lu: %s: not found\n", av[0], cmd_n, argv[0]);
         if (!inter)
             exit(127);
         continue;
@@ -85,13 +96,38 @@ else
         }
     }
 
-    if (path == NULL || path[0] == '\0')
+    if (path == NULL)
+{
+    dprintf(2, "%s: %lu: %s: not found\n", av[0], cmd_n, argv[0]);
+    if (!inter)
+        exit(127);
+    continue;
+}
+
+if (path[0] == '\0')
+{
+    char cur[1024];
+
+    snprintf(cur, sizeof(cur), "./%s", argv[0]);
+    if (access(cur, X_OK) == 0)
     {
-        fprintf(stderr, "./hsh: 1: %s: not found\n", argv[0]);
-        if (!inter)
-            exit(127);
+        pid = fork();
+        if (pid == 0)
+        {
+            execve(cur, argv, environ);
+            perror("execve");
+            exit(1);
+        }
+        else if (pid > 0)
+            wait(NULL);
         continue;
     }
+
+    dprintf(2, "%s: %lu: %s: not found\n", av[0], cmd_n, argv[0]);
+    if (!inter)
+        exit(127);
+    continue;
+}
 
     path_copy = strdup(path);
     dir = strtok(path_copy, ":");
@@ -127,7 +163,7 @@ else
     }
     else
     {
-        fprintf(stderr, "./hsh: 1: %s: not found\n", argv[0]);
+        dprintf(2, "%s: %lu: %s: not found\n", av[0], cmd_n, argv[0]);
         if (!inter)
             exit(127);
     }
