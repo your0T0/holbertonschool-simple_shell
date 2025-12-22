@@ -74,8 +74,11 @@ path = environ[j] + 5;
 break;
 }
 }
-if (path == NULL)
+if (path == NULL || path[0] == '\0')
+{
+	fprintf(stderr, "./hsh: 1: %s: not found\n", argv[0]);
 	continue;
+}
 path_copy = strdup(path);
 dir = strtok(path_copy, ":");
 while (dir != NULL)
