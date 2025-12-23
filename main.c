@@ -155,21 +155,6 @@ else
 }
 if (path[0] == '\0')
 {
-	char cur[1024];
-	snprintf(cur, sizeof(cur), "./%s", argv[0]);
-	if (access(cur, X_OK) == 0)
-	{
-		int status;
-		pid = fork();
-		if (pid == 0)
-		{
-			execve(cur, argv, environ);
-			exit(1);
-		}
-	waitpid(pid, &status, 0);
-	last_status = WEXITSTATUS(status);
-continue;
-}
 	write(2, av[0], strlen(av[0]));
 	write(2, ": ", 2);
 	print_number(cmd_n);
