@@ -163,19 +163,11 @@ if (path[0] == '\0')
 		if (pid == 0)
 		{
 			execve(cur, argv, environ);
-			perror("execve");
 			exit(1);
 		}
-		else if (pid > 0)
-{
-	int status;
 	waitpid(pid, &status, 0);
-	if (WIFEXITED(status))
 	last_status = WEXITSTATUS(status);
-	else
-	last_status = 1;
-}
-continue;    
+continue;
 }
 	write(2, av[0], strlen(av[0]));
 	write(2, ": ", 2);
@@ -183,8 +175,6 @@ continue;
 	write(2, ": ", 2);
 	write(2, argv[0], strlen(argv[0]));
 	write(2, ": not found\n", 12);
-	if (!inter)
-	exit(127);
 	last_status = 127;
 	continue;
 }
