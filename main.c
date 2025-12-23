@@ -165,6 +165,7 @@ if (path[0] == '\0')
 			execve(cur, argv, environ);
 			exit(1);
 		}
+		int status;
 	waitpid(pid, &status, 0);
 	last_status = WEXITSTATUS(status);
 continue;
