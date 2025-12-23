@@ -9,6 +9,24 @@ extern char **environ;
  *
  * Return: 0
  */
+void print_number(unsigned int n)
+{
+char buff[20];
+int i = 0;
+if (n == 0)
+{
+write(2, "0", 1);
+return;
+}
+while (n > 0)
+{
+buff[i++] = (n % 10) + '0';
+n /= 10;
+}
+while (i--)
+write (2, &buff[i], 1);
+}
+
 int main(int ac, char **av)
 {
 	int inter;
@@ -77,7 +95,12 @@ if (strchr(argv[0], '/') != NULL)
 {
 	if (access(argv[0], X_OK) != 0)
 	{
-		dprintf(2, "%s: %lu: %s: not found\n", av[0], cmd_n, argv[0]);
+		write(2, av[0], strlen(av[0]));
+		write(2, ": ", 2);
+		print_number(cmd_n);
+		write(2, ": ",2);
+ 		write(2, argv[0], strlen(argv[0]));
+		write(2, ": not found\n", 13);		
 		if (!inter)
 			exit(127);
 		last_status = 127;
@@ -119,7 +142,12 @@ else
 	}
 	if (path == NULL)
 {
-	dprintf(2, "%s: %lu: %s: not found\n", av[0], cmd_n, argv[0]);
+	write(2, av[0], strlen(av[0]));
+	write(2, ": ", 2);
+	print_number(cmd_n);
+	write(2, ": ", 2);
+	write(2, argv[0], strlen(argv[0]));
+	write(2, ": not found\n", 13);
 	if (!inter)
 	exit(127);
 	last_status = 127;
@@ -149,7 +177,12 @@ if (path[0] == '\0')
 }
 continue;    
 }
-	dprintf(2, "%s: %lu: %s: not found\n", av[0], cmd_n, argv[0]);
+	write(2, av[0], strlen(av[0]));
+	write(2, ": ", 2);
+	print_number(cmd_n);
+	write(2, ": ", 2);
+	write(2, argv[0], strlen(argv[0]));
+	write(2, ": not found\n", 13);
 	if (!inter)
 	exit(127);
 	last_status = 127;
@@ -193,7 +226,12 @@ continue;
 	}
 	else
 	{
-	dprintf(2, "%s: %lu: %s: not found\n", av[0], cmd_n, argv[0]);
+	write(2, av[0], strlen(av[0]));
+	write(2, ": ", 2);
+	print_number(cmd_n);
+	write(2, ": ", 2);
+	write(2, argv[0], strlen(argv[0]));
+	write(2, ": not found\n", 13);
 	if (!inter)
 		exit(127);
 	last_status = 127;
