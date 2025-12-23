@@ -78,6 +78,8 @@ if (strchr(argv[0], '/') != NULL)
 	if (access(argv[0], X_OK) != 0)
 	{
 		dprintf(2, "%s: %lu: %s: not found\n", av[0], cmd_n, argv[0]);
+		if (!inter)
+			exit(127);
 		last_status = 127;
 		continue;
 	}
