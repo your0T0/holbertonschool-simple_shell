@@ -11,25 +11,23 @@ extern char **environ;
  */
 int main(int ac, char **av)
 {
-    int inter;
-    unsigned long cmd_n;
-    int last_status;
-    char *line;
-    size_t len;
-    char *argv[64];
-    int i;
-    int sp;
-    char *token;
-    pid_t pid;
-
-    (void)ac;
-
-    cmd_n = 0;
-    last_status = 0;
-    inter = isatty(STDIN_FILENO);
-    line = NULL;
-    len = 0;
-    while (1)
+	int inter;
+	unsigned long cmd_n;
+	int last_status;
+	char *line;
+	size_t len;
+	char *argv[64];
+	int i;
+	int sp;
+	char *token;
+	pid_t pid;
+	(void)ac;
+	cmd_n = 0;
+	last_status = 0;
+	inter = isatty(STDIN_FILENO);
+	line = NULL;
+	len = 0;
+	while (1)
 {
 sp = 1;
 if (inter)
@@ -49,7 +47,6 @@ break;
 }
 if (sp)
     continue;
-
 cmd_n++;
 token = strtok(line, " \t");
 i = 0;
@@ -61,153 +58,145 @@ token = strtok(NULL, " \t");
 argv[i] = NULL;
 if (strcmp(argv[0], "exit") == 0)
 {
-    free(line);
-    exit(last_status);
+	free(line);
+	exit(last_status);
 }
 if (strcmp(argv[0], "env") == 0)
 {
-    int k = 0;
-
-    while (environ[k] != NULL)
-    {
-        write(1, environ[k], strlen(environ[k]));
-        write(1, "\n", 1);
-        k++;
-    }
-    last_status = 0;
-    continue;
+	int k = 0;
+	while (environ[k] != NULL)
+	{
+		write(1, environ[k], strlen(environ[k]));
+		write(1, "\n", 1);
+		k++;
+	}
+	last_status = 0;
+	continue;
 }
 if (strchr(argv[0], '/') != NULL)
 {
-    if (access(argv[0], X_OK) != 0)
-    {
-        dprintf(2, "%s: %lu: %s: not found\n", av[0], cmd_n, argv[0]);
-        last_status = 127;
-        continue;
-    }
-
-    pid = fork();
-    if (pid == 0)
-    {
-        execve(argv[0], argv, environ);
-        perror("execve");
-        exit(1);
-    }
-    else if (pid > 0)
-    {
-        int status;
-
-        waitpid(pid, &status, 0);
-        if (WIFEXITED(status))
-            last_status = WEXITSTATUS(status);
-        else
-            last_status = 1;
-    }
-    continue;
+	if (access(argv[0], X_OK) != 0)
+	{
+		dprintf(2, "%s: %lu: %s: not found\n", av[0], cmd_n, argv[0]);
+		last_status = 127;
+		continue;
+	}
+	pid = fork();
+	if (pid == 0)
+	{
+	execve(argv[0], argv, environ);
+	perror("execve");
+	exit(1);
+	}
+	else if (pid > 0)
+	{
+	int status;
+	waitpid(pid, &status, 0);
+	if (WIFEXITED(status))
+		last_status = WEXITSTATUS(status);
+	else
+		last_status = 1;
+	}
+	continue;
 }
 else
 {
-    char *path = NULL;
-    int j;
-    char *path_copy;
-    char *dir;
-    char *found = NULL;
-    char full[1024];
-
-    for (j = 0; environ[j] != NULL; j++)
-    {
-        if (strncmp(environ[j], "PATH=", 5) == 0)
-        {
-            path = environ[j] + 5;
-            break;
-        }
-    }
-
-    if (path == NULL)
+	char *path = NULL;
+	int j;
+	char *path_copy;
+	char *dir;
+	char *found = NULL;
+	char full[1024];
+ 	for (j = 0; environ[j] != NULL; j++)
+	{
+		if (strncmp(environ[j], "PATH=", 5) == 0)
+		{
+			path = environ[j] + 5;
+			break;
+		}
+	}
+	if (path == NULL)
 {
-    dprintf(2, "%s: %lu: %s: not found\n", av[0], cmd_n, argv[0]);
-    last_status = 127;
-    continue;
+	dprintf(2, "%s: %lu: %s: not found\n", av[0], cmd_n, argv[0]);
+	if (!inter)
+	exit(127);
+	last_status = 127;
+	continue;
 }
-
 if (path[0] == '\0')
 {
-    char cur[1024];
-
-    snprintf(cur, sizeof(cur), "./%s", argv[0]);
-    if (access(cur, X_OK) == 0)
-    {
-        pid = fork();
-        if (pid == 0)
-        {
-            execve(cur, argv, environ);
-            perror("execve");
-            exit(1);
-        }
-       else if (pid > 0)
+	char cur[1024];
+	snprintf(cur, sizeof(cur), "./%s", argv[0]);
+	if (access(cur, X_OK) == 0)
+	{
+		pid = fork();
+		if (pid == 0)
+		{
+			execve(cur, argv, environ);
+			perror("execve");
+			exit(1);
+		}
+		else if (pid > 0)
 {
-    int status;
-
-    waitpid(pid, &status, 0);
-    if (WIFEXITED(status))
-        last_status = WEXITSTATUS(status);
-    else
-        last_status = 1;
+	int status;
+	waitpid(pid, &status, 0);
+	if (WIFEXITED(status))
+	last_status = WEXITSTATUS(status);
+	else
+	last_status = 1;
 }
 continue;    
 }
-
-    dprintf(2, "%s: %lu: %s: not found\n", av[0], cmd_n, argv[0]);
-    last_status = 127;
-    continue;
+	dprintf(2, "%s: %lu: %s: not found\n", av[0], cmd_n, argv[0]);
+	if (!inter)
+	exit(127);
+	last_status = 127;
+	continue;
 }
-
-    path_copy = strdup(path);
-    dir = strtok(path_copy, ":");
-
-    while (dir != NULL)
-    {
-        if (dir[0] == '\0')
-            snprintf(full, sizeof(full), "./%s", argv[0]);
-        else
-            snprintf(full, sizeof(full), "%s/%s", dir, argv[0]);
-
-        if (access(full, X_OK) == 0)
-        {
-            found = strdup(full);
-            break;
-        }
-        dir = strtok(NULL, ":");
-    }
-    free(path_copy);
-
-    if (found != NULL)
-    {
-        pid = fork();
-        if (pid == 0)
-        {
-            execve(found, argv, environ);
-            perror("execve");
-            exit(1);
-        }
-       else if (pid > 0)
+	path_copy = strdup(path);
+	dir = strtok(path_copy, ":");
+	while (dir != NULL)
+	{
+	if (dir[0] == '\0')
+		snprintf(full, sizeof(full), "./%s", argv[0]);
+	else
+		snprintf(full, sizeof(full), "%s/%s", dir, argv[0]);
+	if (access(full, X_OK) == 0)
+	{
+		found = strdup(full);
+		break;
+	}
+	dir = strtok(NULL, ":");
+	}
+	free(path_copy);
+	if (found != NULL)
+	{
+	pid = fork();
+	if (pid == 0)
+	{
+	execve(found, argv, environ);
+	perror("execve");
+	exit(1);
+	}
+	else if (pid > 0)
 {
-    int status;
-
-    waitpid(pid, &status, 0);
-    if (WIFEXITED(status))
-        last_status = WEXITSTATUS(status);
-    else
-        last_status = 1;
+	int status;
+	waitpid(pid, &status, 0);
+	if (WIFEXITED(status))
+	last_status = WEXITSTATUS(status);
+	else
+	last_status = 1;
 }
-    free(found);
-    }
-    else
-    {
-        dprintf(2, "%s: %lu: %s: not found\n", av[0], cmd_n, argv[0]);
-        last_status = 127;
+	free(found);
+	}
+	else
+	{
+	dprintf(2, "%s: %lu: %s: not found\n", av[0], cmd_n, argv[0]);
+	if (!inter)
+		exit(127);
+	last_status = 127;
 continue;
-    }
+	}
 }
 }
 free(line);
