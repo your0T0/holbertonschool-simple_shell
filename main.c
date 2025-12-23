@@ -100,7 +100,7 @@ if (strchr(argv[0], '/') != NULL)
 		print_number(cmd_n);
 		write(2, ": ",2);
  		write(2, argv[0], strlen(argv[0]));
-		write(2, ": not found\n", 13);		
+		write(2, ": not found\n", 12);		
 		if (!inter)
 			exit(127);
 		last_status = 127;
@@ -147,7 +147,7 @@ else
 	print_number(cmd_n);
 	write(2, ": ", 2);
 	write(2, argv[0], strlen(argv[0]));
-	write(2, ": not found\n", 13);
+	write(2, ": not found\n", 12);
 	if (!inter)
 	exit(127);
 	last_status = 127;
@@ -182,7 +182,7 @@ continue;
 	print_number(cmd_n);
 	write(2, ": ", 2);
 	write(2, argv[0], strlen(argv[0]));
-	write(2, ": not found\n", 13);
+	write(2, ": not found\n", 12);
 	if (!inter)
 	exit(127);
 	last_status = 127;
