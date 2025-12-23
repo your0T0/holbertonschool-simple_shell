@@ -159,13 +159,13 @@ if (path[0] == '\0')
 	snprintf(cur, sizeof(cur), "./%s", argv[0]);
 	if (access(cur, X_OK) == 0)
 	{
+		int status;
 		pid = fork();
 		if (pid == 0)
 		{
 			execve(cur, argv, environ);
 			exit(1);
 		}
-		int status;
 	waitpid(pid, &status, 0);
 	last_status = WEXITSTATUS(status);
 continue;
