@@ -142,7 +142,14 @@ else
 	}
 	if (path == NULL)
 {
-	path = "/bin:/usr/bin";
+	write(2, av[0], strlen(av[0]));
+	write(2, ": ", 2);
+	print_number(cmd_n);
+	write(2, ": ", 2);
+	write(2, argv[0], strlen(argv[0]));
+	write(2, ": not found\n", 12);
+	last_status = 127;
+	continue;
 }
 if (path[0] == '\0')
 {
