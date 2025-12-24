@@ -166,9 +166,9 @@ if (path[0] == '\0')
 }
 	path_copy = strdup(path);
 	dir = strtok(path_copy, ":");
-	while (dir == NULL)
+	while (dir != NULL)
 	{
-	if (dir[0] != '\0')
+	if (dir[0] == '\0')
 		snprintf(full, sizeof(full), "./%s", argv[0]);
 		else
 		snprintf(full, sizeof(full), "%s/%s", dir, argv[0]);
