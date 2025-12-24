@@ -169,13 +169,15 @@ if (path[0] == '\0')
 	while (dir != NULL)
 	{
 	if (dir[0] != '\0')
+	{
 		snprintf(full, sizeof(full), "./%s", argv[0]);
 		if (access(full, X_OK) == 0)
 		{
 			found = strdup(full);
 			break;
 		}
-	else
+	}
+		else
 		snprintf(full, sizeof(full), "%s/%s", dir, argv[0]);
 	if (access(full, X_OK) == 0)
 	{
