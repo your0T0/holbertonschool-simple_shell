@@ -106,6 +106,7 @@ if (strchr(argv[0], '/') != NULL)
 		last_status = 127;
 		continue;
 	}
+	cmd_n++;
 	pid = fork();
 	if (pid == 0)
 	{
@@ -171,6 +172,7 @@ dir = strtok(NULL, ":");
 	free(path_copy);
 	if (found != NULL)
 	{
+	cmd_n++;
 	pid = fork();
 	if (pid == 0)
 	{
