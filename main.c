@@ -128,19 +128,21 @@ else
 {
 	char *path = NULL;
 	int j;
+	int path_found = 0;
 	char *path_copy;
 	char *dir;
 	char *found = NULL;
 	char full[1024];
- 	for (j = 0; environ[j] != NULL; j++)
+	for (j = 0; environ[j] != NULL; j++)
+{
+	if (strncmp(environ[j], "PATH=", 5) == 0)
 	{
-		if (strncmp(environ[j], "PATH=", 5) == 0)
-		{
-			path = environ[j] + 5;
-			break;
-		}
+	path = environ[j] + 5;
+	path_found = 1;
+	break;
 	}
-	if (path == NULL)
+}
+if (!path_found)
 {
 	write(2, av[0], strlen(av[0]));
 	write(2, ": ", 2);
@@ -149,8 +151,6 @@ else
 	write(2, argv[0], strlen(argv[0]));
 	write(2, ": not found\n", 12);
 	exit(127);
-	last_status = 127;
-	continue;
 }
 if (path[0] == '\0')
 {
