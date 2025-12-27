@@ -177,14 +177,6 @@ break;
 }
 dir = strtok(NULL, ":");
 }
-snprintf(full, sizeof(full), "%s/%s", dir, argv[0]);
-	if (access(full, X_OK) == 0)
-	{
-		found = strdup(full);
-		break;
-	}
-	dir = strtok(NULL, ":");
-	}
 	free(path_copy);
 	if (found != NULL)
 	{
