@@ -64,7 +64,8 @@ break;
 }
 }
 if (sp)
-    continue;
+	continue;
+cmd_n++;
 token = strtok(line, " \t");
 i = 0;
 while (token != NULL)
