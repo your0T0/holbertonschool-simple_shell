@@ -128,40 +128,30 @@ else
 {
 	char *path = NULL;
 	int j;
-	int path_found = 0;
 	char *path_copy;
 	char *dir;
 	char *found = NULL;
 	char full[1024];
-	for (j = 0; environ[j] != NULL; j++)
+	path = NULL;
+for (j = 0; environ[j] != NULL; j++)
 {
-	if (strncmp(environ[j], "PATH=", 5) == 0)
-	{
-	path = environ[j] + 5;
-	path_found = 1;
-	break;
-	}
+    if (strncmp(environ[j], "PATH=", 5) == 0)
+    {
+        path = environ[j] + 5;
+        break;
+    }
 }
-if (!path_found)
+if (path == NULL || path[0] == '\0')
 {
-	write(2, av[0], strlen(av[0]));
-	write(2, ": ", 2);
-	print_number(cmd_n);
-	write(2, ": ", 2);
-	write(2, argv[0], strlen(argv[0]));
-	write(2, ": not found\n", 12);
-	exit(127);
-}
-if (path[0] == '\0')
-{
-	write(2, av[0], strlen(av[0]));
-	write(2, ": ", 2);
-	print_number(cmd_n);
-	write(2, ": ", 2);
-	write(2, argv[0], strlen(argv[0]));
-	write(2, ": not found\n", 12);
-	last_status = 127;
-	continue;
+    write(2, av[0], strlen(av[0]));
+    write(2, ": ", 2);
+    print_number(cmd_n);
+    write(2, ": ", 2);
+    write(2, argv[0], strlen(argv[0]));
+    write(2, ": not found\n", 12);
+
+    last_status = 127;
+    continue;
 }
 	path_copy = strdup(path);
 	dir = strtok(path_copy, ":");
