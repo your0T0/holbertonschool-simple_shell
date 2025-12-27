@@ -65,7 +65,6 @@ break;
 }
 if (sp)
     continue;
-cmd_n++;
 token = strtok(line, " \t");
 i = 0;
 while (token != NULL)
@@ -106,6 +105,7 @@ if (strchr(argv[0], '/') != NULL)
 		last_status = 127;
 		continue;
 	}
+	cmd_n++;
 	pid = fork();
 	if (pid == 0)
 	{
@@ -180,6 +180,7 @@ if (path[0] == '\0')
 	free(path_copy);
 	if (found != NULL)
 	{
+	cmd_n++;
 	pid = fork();
 	if (pid == 0)
 	{
