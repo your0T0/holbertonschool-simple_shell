@@ -44,7 +44,7 @@ int main(int ac, char **av)
 	(void)ac;
 	cmd_n = 0;
 	last_status = 0;
-	inter = isatty(STDIN_FILENO);
+	inter = isatty(fileno(input));
 	line = NULL;
 	len = 0;
 	input = stdin;
@@ -194,13 +194,20 @@ dir = strtok(NULL, ":");
 	{
 	cmd_n++;
 	pid = fork();
+	if (pid == -1)
+	{
+	perror("fork");
+	last_status = 1;
+	free(found);
+	continue;
+	}
 	if (pid == 0)
 	{
 	execve(found, argv, environ);
 	perror("execve");
 	exit(1);
 	}
-	if (pid > 0)
+	else
 	{
 	int status;
 	waitpid(pid, &status, 0);
@@ -208,13 +215,6 @@ dir = strtok(NULL, ":");
 		last_status = WEXITSTATUS(status);
 	else
 		last_status = 1;
-	}
-	else if (pid == -1)
-	{
-	perror("fork");
-	last_status = 1;
-	free(found);
-	continue;
 	}
 	free(found);
 	continue;
