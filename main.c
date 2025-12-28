@@ -95,7 +95,7 @@ if (strcmp(argv[0], "env") == 0)
 if (strchr(argv[0], '/') != NULL)
 {
 	struct stat st;
-	if (access(argv[0], X_OK) != 0 || stat(argv[0], &st) != 0 || !S_ISREG(st.st_mode))
+	if (stat(argv[0], &st) != 0 || !S_ISREG(st.st_mode) || access(argv[0], X_OK) != 0)
 	{
 		write(2, av[0], strlen(av[0]));
 		write(2, ": ", 2);
