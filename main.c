@@ -93,12 +93,15 @@ if (strcmp(argv[0], "exit") == 0)
 }
 if (strcmp(argv[0], "env") == 0)
 {
+if (inter)
+{
 	int k = 0;
 	while (environ[k] != NULL)
 	{
 		write(1, environ[k], strlen(environ[k]));
 		write(1, "\n", 1);
 		k++;
+	}
 	}
 	last_status = 0;
 	continue;
