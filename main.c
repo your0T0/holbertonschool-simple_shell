@@ -108,6 +108,12 @@ if (strchr(argv[0], '/') != NULL)
 	}
 	cmd_n++;
 	pid = fork();
+	if (pid == -1)
+	{
+	perror("fork");
+	last_status = 1;
+	continue;
+	}
 	if (pid == 0)
 	{
 	execve(argv[0], argv, environ);
