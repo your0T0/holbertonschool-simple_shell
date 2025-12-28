@@ -187,15 +187,24 @@ dir = strtok(NULL, ":");
 	exit(1);
 	}
 	else if (pid > 0)
-{
+	{
 	int status;
 	waitpid(pid, &status, 0);
 	if (WIFEXITED(status))
 	last_status = WEXITSTATUS(status);
 	else
 	last_status = 1;
-}
+	}
+	else if (pid == -1)
+	{
+	perror("fork");
+	last_status = 1;
 	free(found);
+	continue;
+	}
+	}
+	free(found);
+	continue;
 	}
 	else
 	{
