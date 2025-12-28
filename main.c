@@ -44,7 +44,6 @@ int main(int ac, char **av)
 	(void)ac;
 	cmd_n = 0;
 	last_status = 0;
-	inter = isatty(fileno(input));
 	line = NULL;
 	len = 0;
 	input = stdin;
@@ -57,6 +56,7 @@ int main(int ac, char **av)
 	exit(1);
 	}
 	}
+	inter = (input == stdin) && isatty(STDIN_FILENO);
 	while (1)
 {
 sp = 1;
