@@ -46,12 +46,22 @@ int main(int ac, char **av)
 	inter = isatty(STDIN_FILENO);
 	line = NULL;
 	len = 0;
+	FILE *input = stdin;
+	if (ac == 2)
+	{
+	input = fopen(av[1], "r");
+	if (!input)
+	{
+	perror(av[0]);
+	exit(1);
+	}
+	}
 	while (1)
 {
 sp = 1;
 if (inter)
 	printf("($) ");
-if (getline(&line, &len, stdin) == -1)
+if (getline(&line, &len, input) == -1)
 	break;
 line[strcspn(line, "\n")] = '\0';
 if (line[0] == '\0')
@@ -223,6 +233,8 @@ dir = strtok(NULL, ":");
 	}
 }
 }
+if (input != stdin)
+	fclose(input);
 free(line);
 return (last_status);
 }
