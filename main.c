@@ -40,13 +40,14 @@ int main(int ac, char **av)
 	int sp;
 	char *token;
 	pid_t pid;
+	FILE *input;
 	(void)ac;
 	cmd_n = 0;
 	last_status = 0;
 	inter = isatty(STDIN_FILENO);
 	line = NULL;
 	len = 0;
-	FILE *input = stdin;
+	input = stdin;
 	if (ac == 2)
 	{
 	input = fopen(av[1], "r");
