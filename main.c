@@ -56,7 +56,7 @@ int main(int ac, char **av)
 	exit(1);
 	}
 	}
-	inter = (input == stdin) && isatty(STDIN_FILENO);
+	inter = (ac == 1) && isatty(STDIN_FILENO);
 	while (1)
 {
 sp = 1;
