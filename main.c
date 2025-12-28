@@ -168,8 +168,9 @@ if (path == NULL || path[0] == '\0')
 {
  if (dir[0] != '\0')
 {
+struct stat st;
 snprintf(full, sizeof(full), "%s/%s", dir, argv[0]);
-if (access(full, X_OK) == 0)
+if (stat(full, &st) == 0 && S_ISREG(st.st_mode) &&  access(full, X_OK) == 0)
 {
 found = strdup(full);
 break;
