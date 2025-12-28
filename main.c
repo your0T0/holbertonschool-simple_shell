@@ -186,14 +186,14 @@ dir = strtok(NULL, ":");
 	perror("execve");
 	exit(1);
 	}
-	else if (pid > 0)
+	if (pid > 0)
 	{
 	int status;
 	waitpid(pid, &status, 0);
 	if (WIFEXITED(status))
-	last_status = WEXITSTATUS(status);
+		last_status = WEXITSTATUS(status);
 	else
-	last_status = 1;
+		last_status = 1;
 	}
 	else if (pid == -1)
 	{
@@ -201,7 +201,6 @@ dir = strtok(NULL, ":");
 	last_status = 1;
 	free(found);
 	continue;
-	}
 	}
 	free(found);
 	continue;
@@ -217,7 +216,7 @@ dir = strtok(NULL, ":");
 	if (!inter)
 		exit(127);
 	last_status = 127;
-continue;
+	continue;
 	}
 }
 }
