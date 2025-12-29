@@ -152,7 +152,6 @@ else
 	char *path_copy;
 	char *dir;
 	char *found = NULL;
-	char full[1024];
 	path = NULL;
 for (j = 0; environ[j] != NULL; j++)
 {
