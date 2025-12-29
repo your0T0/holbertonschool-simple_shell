@@ -41,7 +41,6 @@ int main(int ac, char **av)
 	char *token;
 	pid_t pid;
 	FILE *input;
-	(void)ac;
 	cmd_n = 0;
 	last_status = 0;
 	line = NULL;
@@ -56,7 +55,7 @@ int main(int ac, char **av)
 	exit(1);
 	}
 	}
-	inter = (ac == 1) && isatty(STDIN_FILENO);
+	inter = isatty(STDIN_FILENO) && (input == stdin);
 	while (1)
 {
 sp = 1;
