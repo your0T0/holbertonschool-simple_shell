@@ -92,12 +92,15 @@ if (strcmp(argv[0], "exit") == 0)
 }
 if (strcmp(argv[0], "env") == 0)
 {
+	if (inter)
+	{
 	int k = 0;
 	while (environ[k] != NULL)
 	{
 		write(1, environ[k], strlen(environ[k]));
 		write(1, "\n", 1);
 		k++;
+	}
 	}
 	last_status = 0;
 	continue;
@@ -177,13 +180,24 @@ if (path == NULL || path[0] == '\0')
 {
  if (dir[0] != '\0')
 {
-struct stat st;
-snprintf(full, sizeof(full), "%s/%s", dir, argv[0]);
-if (stat(full, &st) == 0 && S_ISREG(st.st_mode) &&  access(full, X_OK) == 0)
+size_t dlen = strlen(dir);
+size_t clen = strlen(argv[0]);
+char *tmp = malloc(dlen + 1 + clen + 1);
+if (!tmp)
 {
-found = strdup(full);
+free(path_copy);
+last_status = 1;
 break;
 }
+strcpy(tmp, dir);
+strcat(tmp, "/");
+strcat(tmp, argv[0]);
+if (access(tmp, X_OK) == 0)
+{
+found = tmp;
+break;
+}
+free(tmp);
 }
 dir = strtok(NULL, ":");
 }
