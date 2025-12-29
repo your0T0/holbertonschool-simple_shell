@@ -60,7 +60,7 @@ int main(int ac, char **av)
 {
 sp = 1;
 if (inter)
-	printf("($) ");
+	write(2, "($) ", 4);
 if (getline(&line, &len, input) == -1)
 	break;
 line[strcspn(line, "\n")] = '\0';
