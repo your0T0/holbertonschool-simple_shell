@@ -181,6 +181,7 @@ if (path == NULL || path[0] == '\0')
 {
 size_t dlen = strlen(dir);
 size_t clen = strlen(argv[0]);
+struct stat st;
 char *tmp = malloc(dlen + 1 + clen + 1);
 if (!tmp)
 {
@@ -191,10 +192,12 @@ break;
 strcpy(tmp, dir);
 strcat(tmp, "/");
 strcat(tmp, argv[0]);
-if (access(tmp, X_OK) == 0)
+if (stat(tmp, &st) == 0 &&
+    S_ISREG(st.st_mode) &&
+    access(tmp, X_OK) == 0)
 {
-found = tmp;
-break;
+    found = tmp;
+    break;
 }
 free(tmp);
 }
