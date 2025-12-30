@@ -64,7 +64,10 @@ if (inter)
 	write(2, "($) ", 4);
 if (my_getline(&line, &len, STDIN_FILENO) == -1)
 	break;
-line[strcspn(line, "\n")] = '\0';
+int k = 0;
+while (line[k] && line[k] != '\n')
+k++;
+line[k] = '\0';
 if (line[0] == '\0')
 	continue;
 for (i = 0; line[i] != '\0'; i++)
@@ -86,10 +89,13 @@ argv[i++] = token;
 token = strtok(NULL, " \t");
 }
 argv[i] = NULL;
-if (strcmp(argv[0], "exit") == 0)
+int j = 0;
+while (argv[0][j] && "exit"[j] && argv[0][j] == "exit"[j])
+j++;
+if (argv[0][j] == '\0' && "exit"[j] == '\0')
 {
-	free(line);
-	exit(last_status);
+free(line);
+exit(last_status);
 }
 if (strcmp(argv[0], "env") == 0)
 {
@@ -106,12 +112,21 @@ if (strcmp(argv[0], "env") == 0)
 	last_status = 0;
 	continue;
 }
-if (strchr(argv[0], '/') != NULL)
-{
 	struct stat st;
 	if (stat(argv[0], &st) != 0 || !S_ISREG(st.st_mode) || access(argv[0], X_OK) != 0)
 	{
 		write(2, av[0], strlen(av[0]));
+int has_slash = 0;
+for (i = 0; argv[0][i]; i++)
+{
+    if (argv[0][i] == '/')
+    {
+        has_slash = 1;
+        break;
+    }
+}
+if (has_slash)
+{
 		write(2, ": ", 2);
 		print_number(cmd_n);
 		write(2, ": ",2);
