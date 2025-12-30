@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/wait.h>
+#include "shell.h"
 extern char **environ;
 /**
  * main - main function
@@ -61,7 +62,7 @@ int main(int ac, char **av)
 sp = 1;
 if (inter)
 	write(2, "($) ", 4);
-if (getline(&line, &len, input) == -1)
+if (my_getlien(&line, &len, input) == -1)
 	break;
 line[strcspn(line, "\n")] = '\0';
 if (line[0] == '\0')
@@ -169,7 +170,6 @@ if (path == NULL || path[0] == '\0')
     write(2, ": ", 2);
     write(2, argv[0], strlen(argv[0]));
     write(2, ": not found\n", 12);
-
     last_status = 127;
     continue;
 }
