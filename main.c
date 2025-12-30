@@ -110,18 +110,15 @@ exit(last_status);
 }
 if (_strcmp(argv[0], "env") == 0)
 {
-	if (inter)
-	{
-	int k = 0;
-	while (environ[k] != NULL)
-	{
-		write(1, environ[k], _strlen(environ[k]));
-		write(1, "\n", 1);
-		k++;
-	}
-	}
-	last_status = 0;
-	continue;
+    int k = 0;
+    while (environ[k] != NULL)
+    {
+        write(1, environ[k], _strlen(environ[k]));
+        write(1, "\n", 1);
+        k++;
+    }
+    last_status = 0;
+    continue;
 }
 	struct stat st;
 int has_slash = 0;
@@ -177,7 +174,6 @@ if (has_slash)
 else
 {
 	char *path = NULL;
-	int j;
 	char *path_copy;
 	char *dir;
 	char *found = NULL;
