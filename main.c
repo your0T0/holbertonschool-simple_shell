@@ -100,6 +100,7 @@ while (line[j])
 argv[i] = NULL;
 if (argv[0] == NULL)
 	continue;
+j = 0;
 while (argv[0][j] && "exit"[j] && argv[0][j] == "exit"[j])
 j++;
 if (argv[0][j] == '\0' && "exit"[j] == '\0')
@@ -123,9 +124,6 @@ if (_strcmp(argv[0], "env") == 0)
 	continue;
 }
 	struct stat st;
-	if (stat(argv[0], &st) != 0 || !S_ISREG(st.st_mode) || access(argv[0], X_OK) != 0)
-	{
-		write(2, av[0], _strlen(av[0]));
 int has_slash = 0;
 for (i = 0; argv[0][i]; i++)
 {
@@ -137,39 +135,44 @@ for (i = 0; argv[0][i]; i++)
 }
 if (has_slash)
 {
-		write(2, ": ", 2);
-		print_number(cmd_n);
-		write(2, ": ",2);
- 		write(2, argv[0], _strlen(argv[0]));
-		write(2, ": not found\n", 12);		
-		if (!inter)
-			exit(127);
-		last_status = 127;
-		continue;
-	}
-	pid = fork();
-	if (pid == -1)
-	{
-	perror("fork");
-	last_status = 1;
-	continue;
-	}
-	if (pid == 0)
-	{
-	execve(argv[0], argv, environ);
-	perror("execve");
-	exit(1);
-	}
-	else if (pid > 0)
-	{
-	int status;
-	waitpid(pid, &status, 0);
-	if (WIFEXITED(status))
-		last_status = WEXITSTATUS(status);
-	else
-		last_status = 1;
-	}
-	continue;
+    if (stat(argv[0], &st) != 0 || !S_ISREG(st.st_mode) || access(argv[0], X_OK) != 0)
+    {
+        write(2, av[0], _strlen(av[0]));
+        write(2, ": ", 2);
+        print_number(cmd_n);
+        write(2, ": ", 2);
+        write(2, argv[0], _strlen(argv[0]));
+        write(2, ": not found\n", 12);
+
+        if (!inter)
+            exit(127);
+        last_status = 127;
+        continue;
+    }
+
+    pid = fork();
+    if (pid == -1)
+    {
+        perror("fork");
+        last_status = 1;
+        continue;
+    }
+    if (pid == 0)
+    {
+        execve(argv[0], argv, environ);
+        perror("execve");
+        exit(1);
+    }
+    else
+    {
+        int status;
+        waitpid(pid, &status, 0);
+        if (WIFEXITED(status))
+            last_status = WEXITSTATUS(status);
+        else
+            last_status = 1;
+    }
+    continue;
 }
 else
 {
