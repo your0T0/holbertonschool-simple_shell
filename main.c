@@ -37,6 +37,7 @@ int main(int ac, char **av)
 	size_t len;
 	char *argv[64];
 	int i;
+	int j;
 	int sp;
 	pid_t pid;
 	FILE *input;
@@ -79,7 +80,26 @@ break;
 if (sp)
 	continue;
 cmd_n++;
-int j = 0;
+i = 0;
+j = 0;
+while (line[j])
+{
+	while (line[j] == ' ' || line[j] == '\t')
+	j++;
+	if (line[j] == '\0')
+	break;
+	argv[i++] = &line[j];
+	while (line[j] && line[j] != ' ' && line[j] != '\t')
+	j++;
+	if (line[j])
+	{
+	line[j] = '\0';
+	j++;
+	}
+}
+argv[i] = NULL;
+if (argv[0] == NULL)
+	continue;
 while (argv[0][j] && "exit"[j] && argv[0][j] == "exit"[j])
 j++;
 if (argv[0][j] == '\0' && "exit"[j] == '\0')
@@ -178,35 +198,52 @@ if (path == NULL || path[0] == '\0')
     last_status = 127;
     continue;
 }
-	path_copy = _strdup(path);
-	while (dir != NULL)
+path_copy = _strdup(path);
+if (!path_copy)
 {
- if (dir[0] != '\0')
+    last_status = 1;
+    continue;
+}
+dir = path_copy;
+while (dir && *dir)
 {
-size_t dlen = _strlen(dir);
-size_t clen = _strlen(argv[0]);
-struct stat st;
-char *tmp = malloc(dlen + 1 + clen + 1);
-if (!tmp)
-{
+    char *next = dir;
+    while (*next && *next != ':')
+        next++;
+    if (*next == ':')
+    {
+        *next = '\0';
+        next++;
+    }
+    else
+        next = NULL;
+    if (*dir)
+    {
+        size_t dlen = _strlen(dir);
+        size_t clen = _strlen(argv[0]);
+        char *tmp = malloc(dlen + 1 + clen + 1);
+        if (!tmp)
+        {
+            free(path_copy);
+            last_status = 1;
+            dir = NULL;
+            break;
+        }
+        _strcpy(tmp, dir);
+        _strcat(tmp, "/");
+        _strcat(tmp, argv[0]);
+	if (stat(tmp, &st) == 0 &&
+	S_ISREG(st.st_mode) &&
+	access(tmp, X_OK) == 0)
+	{
+		found = tmp;
+		break;
+	}
+	free(tmp);
+	}
+	dir = next;
+}
 free(path_copy);
-last_status = 1;
-break;
-}
-_strcpy(tmp, dir);
-_strcat(tmp, "/");
-_strcat(tmp, argv[0]);
-if (stat(tmp, &st) == 0 &&
-    S_ISREG(st.st_mode) &&
-    access(tmp, X_OK) == 0)
-{
-    found = tmp;
-    break;
-}
-free(tmp);
-}
-}
-	free(path_copy);
 	if (found != NULL)
 	{
 	pid = fork();
