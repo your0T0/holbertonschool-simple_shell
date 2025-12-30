@@ -7,8 +7,8 @@ ssize_t my_getline(char **lineptr, size_t *n, int fd)
 	static char buffer[READ_SIZE];
 	static ssize_t buf_len = 0;
 	static ssize_t buf_pos = 0;
+	static int last_fd = -1;
 	ssize_t i = 0;
-	char *new_line;
 	if (!lineptr || !n || fd < 0)
 		return (-1);
 	if (*lineptr == NULL || *n == 0)
@@ -18,6 +18,12 @@ ssize_t my_getline(char **lineptr, size_t *n, int fd)
 		if (!*lineptr)
 			return (-1);
 	}
+	if (fd != last_fd)
+{
+        buf_len = 0;
+        buf_pos = 0;
+        last_fd = fd;
+}
 	while (1)
 	{
 		if (buf_pos >= buf_len)
@@ -28,15 +34,22 @@ ssize_t my_getline(char **lineptr, size_t *n, int fd)
 				return (i > 0 ? i : -1);
 		}
 		if ((size_t)i + 1 >= *n)
-		{
-			*n *= 2;
-			new_line = realloc(*lineptr, *n);
-			if (!new_line)
-				return (-1);
-			*lineptr = new_line;
-		}
-		(*lineptr)[i++] = buffer[buf_pos++];
+{
+        size_t new_size = *n * 2;
+        char *tmp = malloc(new_size);
+        size_t j;
 
+        if (!tmp)
+                return (-1);
+
+        for (j = 0; j < (size_t)i; j++)
+                tmp[j] = (*lineptr)[j];
+
+        free(*lineptr);
+        *lineptr = tmp;
+        *n = new_size;
+}
+		(*lineptr)[i++] = buffer[buf_pos++];
 		if ((*lineptr)[i - 1] == '\n')
 			break;
 	}
