@@ -64,6 +64,8 @@ int k;
 char *next;
 int code;
 int n;
+int status;
+char *tmp;
 size_t dlen;
 size_t clen;
 int idx;
@@ -185,7 +187,6 @@ if (has_slash)
         last_status = 127;
         continue;
     }
-
     pid = fork();
     if (pid == -1)
     {
@@ -201,7 +202,6 @@ if (has_slash)
     }
     else
     {
-        int status;
         waitpid(pid, &status, 0);
         if (WIFEXITED(status))
             last_status = WEXITSTATUS(status);
@@ -259,7 +259,7 @@ while (dir && *dir)
     {
 	dlen = _strlen(dir);
 	clen = _strlen(argv[0]);
-        char *tmp = malloc(dlen + 1 + clen + 1);
+	tmp = malloc(dlen + 1 + clen + 1);
         if (!tmp)
         {
             free(path_copy);
