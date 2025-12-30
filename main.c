@@ -58,6 +58,8 @@ int main(int ac, char **av)
 	inter = isatty(STDIN_FILENO) && (input == stdin);
 	while (1)
 {
+struct stat st;
+int has_slash;
 sp = 1;
 if (inter)
 	write(2, "($) ", 4);
@@ -68,10 +70,11 @@ if (ac == 2)
 }
 else
 {
+int k;
     if (my_getline(&line, &len, STDIN_FILENO) == -1)
         break;
 }
-int k = 0;
+k = 0;
 while (line[k] && line[k] != '\n')
 k++;
 line[k] = '\0';
@@ -119,7 +122,6 @@ if (argv[0][j] == '\0' && "exit"[j] == '\0')
     {
         int n = 0;
         int idx = 0;
-
         while (argv[1][idx])
         {
             if (argv[1][idx] < '0' || argv[1][idx] > '9')
@@ -138,7 +140,6 @@ if (argv[0][j] == '\0' && "exit"[j] == '\0')
         }
         code = n % 256;
     }
-
     free(line);
     exit(code);
 }
@@ -154,8 +155,7 @@ if (_strcmp(argv[0], "env") == 0)
     last_status = 0;
     continue;
 }
-	struct stat st;
-int has_slash = 0;
+has_slash = 0;
 for (i = 0; argv[0][i]; i++)
 {
     if (argv[0][i] == '/')
