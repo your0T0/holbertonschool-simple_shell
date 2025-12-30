@@ -62,7 +62,7 @@ int main(int ac, char **av)
 sp = 1;
 if (inter)
 	write(2, "($) ", 4);
-if (my_getlien(&line, &len, STDIN_FILENO) == -1)
+if (my_getline(&line, &len, STDIN_FILENO) == -1)
 	break;
 line[strcspn(line, "\n")] = '\0';
 if (line[0] == '\0')
