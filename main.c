@@ -60,6 +60,13 @@ int main(int ac, char **av)
 {
 struct stat st;
 int has_slash;
+int k;
+char *next;
+int code;
+int n;
+size_t dlen;
+size_t clen;
+int idx;
 sp = 1;
 if (inter)
 	write(2, "($) ", 4);
@@ -70,7 +77,6 @@ if (ac == 2)
 }
 else
 {
-int k;
     if (my_getline(&line, &len, STDIN_FILENO) == -1)
         break;
 }
@@ -116,12 +122,11 @@ while (argv[0][j] && "exit"[j] && argv[0][j] == "exit"[j])
 j++;
 if (argv[0][j] == '\0' && "exit"[j] == '\0')
 {
-    int code = last_status;
-
+code = last_status;
     if (argv[1] != NULL)
     {
-        int n = 0;
-        int idx = 0;
+	n = 0;
+	idx = 0;
         while (argv[1][idx])
         {
             if (argv[1][idx] < '0' || argv[1][idx] > '9')
@@ -145,7 +150,7 @@ if (argv[0][j] == '\0' && "exit"[j] == '\0')
 }
 if (_strcmp(argv[0], "env") == 0)
 {
-    int k = 0;
+	k = 0;
     while (environ[k] != NULL)
     {
         write(1, environ[k], _strlen(environ[k]));
@@ -240,7 +245,7 @@ if (!path_copy)
 dir = path_copy;
 while (dir && *dir)
 {
-    char *next = dir;
+	next = dir;
     while (*next && *next != ':')
         next++;
     if (*next == ':')
@@ -252,8 +257,8 @@ while (dir && *dir)
         next = NULL;
     if (*dir)
     {
-        size_t dlen = _strlen(dir);
-        size_t clen = _strlen(argv[0]);
+	dlen = _strlen(dir);
+	clen = _strlen(argv[0]);
         char *tmp = malloc(dlen + 1 + clen + 1);
         if (!tmp)
         {
