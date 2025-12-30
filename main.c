@@ -61,8 +61,16 @@ int main(int ac, char **av)
 sp = 1;
 if (inter)
 	write(2, "($) ", 4);
-if (my_getline(&line, &len, STDIN_FILENO) == -1)
-	break;
+if (ac == 2)
+{
+    if (my_getline(&line, &len, fileno(input)) == -1)
+        break;
+}
+else
+{
+    if (my_getline(&line, &len, STDIN_FILENO) == -1)
+        break;
+}
 int k = 0;
 while (line[k] && line[k] != '\n')
 k++;
@@ -105,8 +113,34 @@ while (argv[0][j] && "exit"[j] && argv[0][j] == "exit"[j])
 j++;
 if (argv[0][j] == '\0' && "exit"[j] == '\0')
 {
-free(line);
-exit(last_status);
+    int code = last_status;
+
+    if (argv[1] != NULL)
+    {
+        int n = 0;
+        int idx = 0;
+
+        while (argv[1][idx])
+        {
+            if (argv[1][idx] < '0' || argv[1][idx] > '9')
+            {
+                write(2, av[0], _strlen(av[0]));
+                write(2, ": ", 2);
+                print_number(cmd_n);
+                write(2, ": exit: Illegal number: ", 24);
+                write(2, argv[1], _strlen(argv[1]));
+                write(2, "\n", 1);
+                free(line);
+                exit(2);
+            }
+            n = n * 10 + (argv[1][idx] - '0');
+            idx++;
+        }
+        code = n % 256;
+    }
+
+    free(line);
+    exit(code);
 }
 if (_strcmp(argv[0], "env") == 0)
 {
