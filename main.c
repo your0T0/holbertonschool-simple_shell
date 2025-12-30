@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include "shell.h"
-#include "helpers.c"
 extern char **environ;
 /**
  * main - main function
@@ -39,7 +38,6 @@ int main(int ac, char **av)
 	char *argv[64];
 	int i;
 	int sp;
-	char *token;
 	pid_t pid;
 	FILE *input;
 	cmd_n = 0;
@@ -81,14 +79,6 @@ break;
 if (sp)
 	continue;
 cmd_n++;
-token = strtok(line, " \t");
-i = 0;
-while (token != NULL)
-{
-argv[i++] = token;
-token = strtok(NULL, " \t");
-}
-argv[i] = NULL;
 int j = 0;
 while (argv[0][j] && "exit"[j] && argv[0][j] == "exit"[j])
 j++;
@@ -189,7 +179,6 @@ if (path == NULL || path[0] == '\0')
     continue;
 }
 	path_copy = _strdup(path);
-	dir = strtok(path_copy, ":");
 	while (dir != NULL)
 {
  if (dir[0] != '\0')
@@ -204,9 +193,9 @@ free(path_copy);
 last_status = 1;
 break;
 }
-strcpy(tmp, dir);
-strcat(tmp, "/");
-strcat(tmp, argv[0]);
+_strcpy(tmp, dir);
+_strcat(tmp, "/");
+_strcat(tmp, argv[0]);
 if (stat(tmp, &st) == 0 &&
     S_ISREG(st.st_mode) &&
     access(tmp, X_OK) == 0)
@@ -216,7 +205,6 @@ if (stat(tmp, &st) == 0 &&
 }
 free(tmp);
 }
-dir = strtok(NULL, ":");
 }
 	free(path_copy);
 	if (found != NULL)
