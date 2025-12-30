@@ -2,9 +2,9 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <string.h>
 #include <sys/wait.h>
 #include "shell.h"
+#include "helpers.c"
 extern char **environ;
 /**
  * main - main function
@@ -97,14 +97,14 @@ if (argv[0][j] == '\0' && "exit"[j] == '\0')
 free(line);
 exit(last_status);
 }
-if (strcmp(argv[0], "env") == 0)
+if (_strcmp(argv[0], "env") == 0)
 {
 	if (inter)
 	{
 	int k = 0;
 	while (environ[k] != NULL)
 	{
-		write(1, environ[k], strlen(environ[k]));
+		write(1, environ[k], _strlen(environ[k]));
 		write(1, "\n", 1);
 		k++;
 	}
@@ -115,7 +115,7 @@ if (strcmp(argv[0], "env") == 0)
 	struct stat st;
 	if (stat(argv[0], &st) != 0 || !S_ISREG(st.st_mode) || access(argv[0], X_OK) != 0)
 	{
-		write(2, av[0], strlen(av[0]));
+		write(2, av[0], _strlen(av[0]));
 int has_slash = 0;
 for (i = 0; argv[0][i]; i++)
 {
@@ -130,7 +130,7 @@ if (has_slash)
 		write(2, ": ", 2);
 		print_number(cmd_n);
 		write(2, ": ",2);
- 		write(2, argv[0], strlen(argv[0]));
+ 		write(2, argv[0], _strlen(argv[0]));
 		write(2, ": not found\n", 12);		
 		if (!inter)
 			exit(127);
@@ -171,7 +171,7 @@ else
 	path = NULL;
 for (j = 0; environ[j] != NULL; j++)
 {
-    if (strncmp(environ[j], "PATH=", 5) == 0)
+    if (_strncmp(environ[j], "PATH=", 5) == 0)
     {
         path = environ[j] + 5;
         break;
@@ -179,23 +179,23 @@ for (j = 0; environ[j] != NULL; j++)
 }
 if (path == NULL || path[0] == '\0')
 {
-    write(2, av[0], strlen(av[0]));
+    write(2, av[0], _strlen(av[0]));
     write(2, ": ", 2);
     print_number(cmd_n);
     write(2, ": ", 2);
-    write(2, argv[0], strlen(argv[0]));
+    write(2, argv[0], _strlen(argv[0]));
     write(2, ": not found\n", 12);
     last_status = 127;
     continue;
 }
-	path_copy = strdup(path);
+	path_copy = _strdup(path);
 	dir = strtok(path_copy, ":");
 	while (dir != NULL)
 {
  if (dir[0] != '\0')
 {
-size_t dlen = strlen(dir);
-size_t clen = strlen(argv[0]);
+size_t dlen = _strlen(dir);
+size_t clen = _strlen(argv[0]);
 struct stat st;
 char *tmp = malloc(dlen + 1 + clen + 1);
 if (!tmp)
@@ -249,11 +249,11 @@ dir = strtok(NULL, ":");
 	}
 	else
 	{
-	write(2, av[0], strlen(av[0]));
+	write(2, av[0], _strlen(av[0]));
 	write(2, ": ", 2);
 	print_number(cmd_n);
 	write(2, ": ", 2);
-	write(2, argv[0], strlen(argv[0]));
+	write(2, argv[0], _strlen(argv[0]));
 	write(2, ": not found\n", 12);
 	if (!inter)
 		exit(127);
