@@ -126,18 +126,24 @@ while (line[j])
 argv[i] = NULL;
 if (argv[0] == NULL)
 	continue;
-j = 0;
-while (argv[0][j] && "exit"[j] && argv[0][j] == "exit"[j])
-j++;
-if (argv[0][j] == '\0' && "exit"[j] == '\0')
+if (strcmp(argv[0], "env") == 0)
 {
-code = last_status;
-    if (argv[1] != NULL)
+    int j = 0;
+
+    while (environ[j])
     {
-	n = 0;
-	idx = 0;
-        while (argv[1][idx])
-        {
+        write(STDOUT_FILENO, environ[j], strlen(environ[j]));
+        write(STDOUT_FILENO, "\n", 1);
+        j++;
+    }
+    last_status = 0;
+    continue;
+}
+if (strcmp(argv[0], "exit") == 0)
+{
+    free(line);
+    exit(last_status);
+}
             if (argv[1][idx] < '0' || argv[1][idx] > '9')
             {
                 write(2, av[0], _strlen(av[0]));
