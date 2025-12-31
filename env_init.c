@@ -1,46 +1,35 @@
 #include "shell.h"
 
-extern char **environ;
-
-/* keep pointer to the env copy we allocate */
-static char **g_env_copy = NULL;
-
 /**
  * env_init - prepare a modifiable copy of the environment
  * Return: 0 on success, -1 on failure
  */
 int env_init(void)
 {
-    int i, count = 0;
-    char **new_env;
+	int i, count = 0;
+	char **new_env;
 
-    if (!environ)
-        return (0);
+	while (environ && environ[count])
+		count++;
 
-    while (environ[count])
-        count++;
+	new_env = malloc(sizeof(char *) * (count + 1));
+	if (!new_env)
+		return (-1);
 
-    new_env = malloc(sizeof(char *) * (count + 1));
-    if (!new_env)
-        return (-1);
-
-    for (i = 0; i < count; i++)
-    {
-        new_env[i] = strdup(environ[i]);
-        if (!new_env[i])
-        {
-            while (i > 0)
-                free(new_env[--i]);
-            free(new_env);
-            return (-1);
-        }
-    }
-    new_env[count] = NULL;
-
-    g_env_copy = new_env;
-    environ = new_env;
-
-    return (0);
+	for (i = 0; i < count; i++)
+	{
+		new_env[i] = strdup(environ[i]);
+		if (!new_env[i])
+		{
+			while (i > 0)
+				free(new_env[--i]);
+			free(new_env);
+			return (-1);
+		}
+	}
+	new_env[count] = NULL;
+	environ = new_env;
+	return (0);
 }
 
 /**
@@ -48,14 +37,13 @@ int env_init(void)
  */
 void env_free(void)
 {
-    int i;
+	int i = 0;
 
-    if (!g_env_copy)
-        return;
+	if (!environ)
+		return;
 
-    for (i = 0; g_env_copy[i]; i++)
-        free(g_env_copy[i]);
+	while (environ[i])
+		free(environ[i++]);
 
-    free(g_env_copy);
-    g_env_copy = NULL;
-}}
+	free(environ);
+}
