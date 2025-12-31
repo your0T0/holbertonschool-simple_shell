@@ -1,112 +1,137 @@
-# 🐚 0x16. C – Simple Shell
+---
 
-> *“The shell is the bridge between the user and the operating system.”*
+## 🗂️ File Structure and Responsibilities
+
+This project is organized into multiple source files, each responsible for a specific part of the shell’s behavior.  
+This modular design improves readability, maintainability, and debugging.
 
 ---
 
-## 👥 Authors
+### 📄 `main.c`
 
-**Manar** & **Yara**  
-*Simple Shell Developers*
+This file contains the **entry point of the shell** and controls the main execution loop.
 
----
+Responsibilities:
+- Detects whether the shell is running in interactive or non-interactive mode using `isatty`
+- Displays the prompt in interactive mode
+- Reads user input using the custom input handler
+- Ignores empty or whitespace-only commands
+- Parses input into arguments
+- Handles built-in commands
+- Coordinates command execution
+- Tracks command count
+- Stores and updates the last exit status
+- Terminates the shell gracefully on `exit` or end-of-file
 
-## 📋 Table of Contents
-
-- [Project Overview](#-project-overview)
-- [Learning Objectives](#-learning-objectives)
-- [Shell Overview](#-shell-overview)
-- [Features](#-features)
-- [Built-in Commands](#-built-in-commands)
-- [Execution Modes](#-execution-modes)
-- [Command Parsing](#-command-parsing)
-- [PATH Resolution](#-path-resolution)
-- [Process Management](#-process-management)
-- [Error Handling](#-error-handling)
-- [Limitations](#-limitations)
-- [File Structure](#-file-structure)
-- [Compilation & Usage](#-compilation--usage)
-- [Memory Management](#-memory-management)
-- [Coding Standards](#-coding-standards)
-- [Educational Purpose](#-educational-purpose)
+This file acts as the **central controller** of the shell.
 
 ---
 
-## 🧭 Project Overview
+### 📄 `getline.c`
 
-This project is a simplified implementation of a UNIX command line interpreter written in **C**, developed as part of the **Holberton School Low-Level Programming curriculum**.
+This file implements a **custom line-reading function** used instead of the standard `getline`.
 
-The shell recreates essential behaviors of `/bin/sh` by reading user input, parsing commands, resolving executable paths, creating child processes, and executing programs using system calls.
+Responsibilities:
+- Reads input from a file descriptor
+- Dynamically manages memory for input buffers
+- Handles partial reads and buffering
+- Supports both interactive and non-interactive input
+- Detects end-of-file conditions correctly
 
-The project focuses on understanding how shells operate internally while respecting strict constraints on allowed functions and coding style.
-
----
-
-## 🎯 Learning Objectives
-
-By completing this project, we demonstrate understanding of:
-
-- How a UNIX shell works internally  
-- Process creation and synchronization  
-- Program execution using system calls  
-- Environment variable handling  
-- PATH parsing and command lookup  
-- Interactive vs non-interactive execution  
-- Proper exit status handling  
-- Memory-safe programming in C  
-- Writing clean, structured, Betty-compliant code  
+Using a custom getline implementation allows:
+- Better control over memory
+- Compliance with project constraints
+- Consistent behavior across execution modes
 
 ---
 
-## 🐚 Shell Overview
+### 📄 `helpers.c`
 
-A shell is a program that provides an interface between the user and the operating system.  
-It interprets user commands and requests services from the kernel.
+This file contains **utility helper functions** used throughout the shell.
 
-This shell supports:
-- Reading commands from standard input
-- Executing programs found in the system
-- Handling errors and exit statuses correctly
-- Running both interactively and non-interactively
+Typical responsibilities include:
+- Custom string functions (comparison, duplication, concatenation)
+- Token manipulation helpers
+- Numeric conversion helpers
+- Reusable logic shared between files
 
----
-
-## ⚙️ Features
-
-### ✅ Supported Functionality
-
-- Displays a prompt and waits for user input
-- Reads input using `getline`
-- Ignores empty or whitespace-only input
-- Tokenizes commands using `strtok`
-- Executes commands using `execve`
-- Searches executables in the `PATH`
-- Executes commands via absolute and relative paths
-- Implements required built-in commands (`exit`, `env`)
-- Handles end-of-file (`Ctrl + D`)
-- Matches `/bin/sh` error output format
+Keeping helpers separate:
+- Avoids code duplication
+- Improves readability
+- Keeps core logic clean and focused
 
 ---
 
-## 🔧 Built-in Commands
+### 📄 `shell.h`
 
-### `exit`
-Exits the shell and returns the exit status of the last executed command.
+This header file defines **function prototypes, macros, and shared declarations**.
 
-### `env`
-Prints all environment variables available to the current process.
+Responsibilities:
+- Declares all functions used across multiple source files
+- Defines constants and macros
+- Includes required system headers
+- Exposes shared interfaces between modules
+
+This file ensures:
+- Proper compilation
+- Clear contracts between components
+- Cleaner and safer code structure
 
 ---
 
-## 🖥️ Execution Modes
+### 📄 `man_1_simple_shell`
 
-### 🟢 Interactive Mode
+This file contains the **manual page** for the shell.
 
-When the shell is executed from a terminal:
+Responsibilities:
+- Describes what the shell does
+- Explains usage and execution modes
+- Documents built-in commands
+- Provides examples for users
+- Follows UNIX man page conventions
 
-```bash
-$ ./hsh
-($) /bin/ls
-hsh main.c
-($) exit
-$
+The manual page allows users to access documentation using:
+man ./man_1_simple_shell
+
+---
+
+### 📄 `AUTHORS`
+
+This file lists the contributors to the project.
+
+Responsibilities:
+- Identifies project authors
+- Credits collaboration
+- Follows Holberton project requirements
+
+---
+
+### 📄 `README.md`
+
+This file serves as the **main documentation** for the project.
+
+Responsibilities:
+- Explains the purpose of the project
+- Documents shell behavior
+- Describes architecture and execution flow
+- Explains file responsibilities
+- Provides compilation and usage instructions
+- Clarifies limitations and design choices
+
+The README is intended for both **technical reviewers and learners**.
+
+---
+
+## 🧩 Design Philosophy
+
+Each file in this project has **a single, clear responsibility**.
+
+This separation allows:
+- Easier debugging
+- Better scalability
+- Cleaner logic
+- Strong alignment with UNIX design principles
+
+---
+
+
