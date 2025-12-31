@@ -47,6 +47,7 @@ int main(int ac, char **av)
 	int sp;
 	pid_t pid;
 	FILE *input;
+	signal(SIGINT, handle_sigint)
 	cmd_n = 0;
 	last_status = 0;
 	line = NULL;
