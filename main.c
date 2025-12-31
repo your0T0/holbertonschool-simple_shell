@@ -16,7 +16,7 @@ void handle_sigint(int sig)
     (void)sig;
     write(STDOUT_FILENO, "\n($) ", 5);
 }
-void print_number(unsigned int n);
+void print_number(unsigned int n)
 {
 char buff[20];
 int i = 0;
