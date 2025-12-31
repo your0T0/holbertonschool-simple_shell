@@ -1,198 +1,53 @@
+#include <errno.h>
 #include <signal.h>
 #include <stdio.h>
-#include <sys/stat.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <sys/wait.h>
 #include <string.h>
-#include "shell.h"
+#include <sys/stat.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 extern char **environ;
 
-/* ---------- helpers (printing) ---------- */
+#define PROMPT "($) "
+#define MAX_ARGS 64
+
+static int g_interactive = 0;
+
+/* ---------- helpers ---------- */
 
 static void handle_sigint(int sig)
 {
 	(void)sig;
-	write(STDOUT_FILENO, "\n($) ", 5);
+	if (g_interactive)
+		write(STDOUT_FILENO, "\n" PROMPT, sizeof("\n" PROMPT) - 1);
 }
 
 static void print_number(unsigned long n)
 {
-	char buff[32];
-	int i;
+	char buf[32];
+	int i = 0;
 
 	if (n == 0)
 	{
-		write(2, "0", 1);
+		write(STDERR_FILENO, "0", 1);
 		return;
 	}
 
-	i = 0;
-	while (n > 0)
+	while (n > 0 && i < (int)sizeof(buf))
 	{
-		buff[i++] = (n % 10) + '0';
+		buf[i++] = (char)('0' + (n % 10));
 		n /= 10;
 	}
-
 	while (i--)
-		write(2, &buff[i], 1);
+		write(STDERR_FILENO, &buf[i], 1);
 }
 
-static void print_not_found(char *prog, unsigned long cmd_n, char *cmd)
+static int is_blank_line(const char *s)
 {
-	write(2, prog, _strlen(prog));
-	write(2, ": ", 2);
-	print_number(cmd_n);
-	write(2, ": ", 2);
-	write(2, cmd, _strlen(cmd));
-	write(2, ": not found\n", 12);
-}
+	size_t i;
 
-static int is_number(char *s)
-{
-	int i;
-
-	if (s == NULL || s[0] == '\0')
-		return (0);
-
-	i = 0;
-	while (s[i])
-	{
-		if (s[i] < '0' || s[i] > '9')
-			return (0);
-		i++;
-	}
-	return (1);
-}
-
-/* ---------- command lookup ---------- */
-
-static int has_slash(char *s)
-{
-	int i;
-
-	if (s == NULL)
-		return (0);
-
-	for (i = 0; s[i]; i++)
-	{
-		if (s[i] == '/')
-			return (1);
-	}
-	return (0);
-}
-
-static char *get_path_value(void)
-{
-	int i;
-
-	if (environ == NULL)
-		return (NULL);
-
-	for (i = 0; environ[i] != NULL; i++)
-	{
-		if (_strncmp(environ[i], "PATH=", 5) == 0)
-			return (environ[i] + 5);
-	}
-	return (NULL);
-}
-
-static char *build_candidate(char *dir, char *cmd)
-{
-	size_t dlen, clen;
-	char *tmp;
-
-	/* empty entry in PATH means current directory */
-	if (dir == NULL || dir[0] == '\0')
-		dir = ".";
-
-	dlen = _strlen(dir);
-	clen = _strlen(cmd);
-
-	tmp = malloc(dlen + 1 + clen + 1);
-	if (tmp == NULL)
-		return (NULL);
-
-	_strcpy(tmp, dir);
-	_strcat(tmp, "/");
-	_strcat(tmp, cmd);
-
-	return (tmp);
-}
-
-/*
- * Returns malloc'd full path if executable exists, else NULL.
- * IMPORTANT: this ensures we do NOT fork if command doesn't exist.
- */
-static char *resolve_command(char *cmd)
-{
-	struct stat st;
-	char *path, *copy, *dir, *next, *candidate;
-
-	if (cmd == NULL || cmd[0] == '\0')
-		return (NULL);
-
-	/* If cmd contains '/', check directly */
-	if (has_slash(cmd))
-	{
-		if (stat(cmd, &st) == 0 && S_ISREG(st.st_mode) && access(cmd, X_OK) == 0)
-			return (_strdup(cmd));
-		return (NULL);
-	}
-
-	/* No slash: search in PATH */
-	path = get_path_value();
-	if (path == NULL)
-		return (NULL);
-
-	copy = _strdup(path);
-	if (copy == NULL)
-		return (NULL);
-
-	dir = copy;
-	while (dir)
-	{
-		next = dir;
-		while (*next && *next != ':')
-			next++;
-
-		if (*next == ':')
-		{
-			*next = '\0';
-			next++;
-		}
-		else
-			next = NULL;
-
-		candidate = build_candidate(dir, cmd);
-		if (candidate == NULL)
-		{
-			free(copy);
-			return (NULL);
-		}
-
-		if (stat(candidate, &st) == 0 && S_ISREG(st.st_mode) && access(candidate, X_OK) == 0)
-		{
-			free(copy);
-			return (candidate); /* keep candidate */
-		}
-
-		free(candidate);
-		dir = next;
-	}
-
-	free(copy);
-	return (NULL);
-}
-
-/* ---------- parsing ---------- */
-
-static int only_spaces(char *s)
-{
-	int i;
-
-	if (s == NULL)
+	if (!s)
 		return (1);
 
 	for (i = 0; s[i]; i++)
@@ -203,218 +58,274 @@ static int only_spaces(char *s)
 	return (1);
 }
 
-static int split_line(char *line, char **argv, int max)
+static void print_env(void)
 {
-	int i, j;
+	int i = 0;
 
-	i = 0;
-	j = 0;
-
-	while (line[j] && i < (max - 1))
+	while (environ && environ[i])
 	{
-		while (line[j] == ' ' || line[j] == '\t')
-			j++;
+		write(STDOUT_FILENO, environ[i], strlen(environ[i]));
+		write(STDOUT_FILENO, "\n", 1);
+		i++;
+	}
+}
 
-		if (line[j] == '\0')
+/* split line into argv in-place (replaces spaces/tabs with '\0') */
+static int split_line(char *line, char **argv, int max_args)
+{
+	int argc = 0;
+	char *p = line;
+
+	while (*p)
+	{
+		while (*p == ' ' || *p == '\t')
+			p++;
+
+		if (*p == '\0' || *p == '\n')
 			break;
 
-		argv[i++] = &line[j];
+		if (argc >= max_args - 1)
+			break;
 
-		while (line[j] && line[j] != ' ' && line[j] != '\t')
-			j++;
+		argv[argc++] = p;
 
-		if (line[j])
-		{
-			line[j] = '\0';
-			j++;
-		}
+		while (*p && *p != ' ' && *p != '\t' && *p != '\n')
+			p++;
+
+		if (*p == '\0' || *p == '\n')
+			break;
+
+		*p = '\0';
+		p++;
 	}
 
-	argv[i] = NULL;
-	return (i);
+	argv[argc] = NULL;
+	return (argc);
+}
+
+static void print_not_found(const char *prog, unsigned long cmd_n, const char *cmd)
+{
+	write(STDERR_FILENO, prog, strlen(prog));
+	write(STDERR_FILENO, ": ", 2);
+	print_number(cmd_n);
+	write(STDERR_FILENO, ": ", 2);
+	write(STDERR_FILENO, cmd, strlen(cmd));
+	write(STDERR_FILENO, ": not found\n", 12);
+}
+
+/* returns malloc'd full path if found, else NULL */
+static char *find_in_path(const char *cmd)
+{
+	char *path, *copy, *dir, *save;
+	size_t dlen, clen;
+	char *full;
+	struct stat st;
+
+	path = getenv("PATH");
+	if (!path || path[0] == '\0')
+		return (NULL);
+
+	copy = strdup(path);
+	if (!copy)
+		return (NULL);
+
+	clen = strlen(cmd);
+
+	dir = strtok_r(copy, ":", &save);
+	while (dir)
+	{
+		if (dir[0] == '\0')
+			dir = "."; /* empty entry means current dir */
+
+		dlen = strlen(dir);
+		full = malloc(dlen + 1 + clen + 1);
+		if (!full)
+		{
+			free(copy);
+			return (NULL);
+		}
+
+		memcpy(full, dir, dlen);
+		full[dlen] = '/';
+		memcpy(full + dlen + 1, cmd, clen);
+		full[dlen + 1 + clen] = '\0';
+
+		if (stat(full, &st) == 0 && S_ISREG(st.st_mode) && access(full, X_OK) == 0)
+		{
+			free(copy);
+			return (full);
+		}
+
+		free(full);
+		dir = strtok_r(NULL, ":", &save);
+	}
+
+	free(copy);
+	return (NULL);
+}
+
+static int execute_cmd(char **argv)
+{
+	pid_t pid;
+	int status;
+
+	pid = fork();
+	if (pid == -1)
+	{
+		perror("fork");
+		return (1);
+	}
+
+	if (pid == 0)
+	{
+		execve(argv[0], argv, environ);
+		perror("execve");
+		_exit(1);
+	}
+
+	if (waitpid(pid, &status, 0) == -1)
+	{
+		perror("waitpid");
+		return (1);
+	}
+
+	if (WIFEXITED(status))
+		return (WEXITSTATUS(status));
+
+	return (1);
+}
+
+static int is_number(const char *s)
+{
+	size_t i;
+
+	if (!s || !*s)
+		return (0);
+
+	for (i = 0; s[i]; i++)
+	{
+		if (s[i] < '0' || s[i] > '9')
+			return (0);
+	}
+	return (1);
 }
 
 /* ---------- main ---------- */
 
 int main(int ac, char **av)
 {
-	int inter;
-	unsigned long cmd_n;
-	int last_status;
-	char *line;
-	size_t len;
-	char *argv[64];
-	pid_t pid;
-	FILE *input;
+	FILE *input = stdin;
+	char *line = NULL;
+	size_t cap = 0;
+	ssize_t r;
+	unsigned long cmd_n = 0;
+	int last_status = 0;
+	char *argv[MAX_ARGS];
+	int argc;
 
-	signal(SIGINT, handle_sigint);
-
-	cmd_n = 0;
-	last_status = 0;
-	line = NULL;
-	len = 0;
-
-	input = stdin;
 	if (ac == 2)
 	{
 		input = fopen(av[1], "r");
 		if (!input)
 		{
 			perror(av[0]);
-			exit(1);
+			return (1);
 		}
 	}
 
-	inter = (ac == 1 && isatty(STDIN_FILENO));
+	g_interactive = isatty(STDIN_FILENO) && (input == stdin);
+	signal(SIGINT, handle_sigint);
 
 	while (1)
 	{
-		int k, argc;
-		int status;
-		char *cmd_path;
+		if (g_interactive)
+			write(STDOUT_FILENO, PROMPT, sizeof(PROMPT) - 1);
 
-		if (inter)
-			write(STDOUT_FILENO, "($) ", 4);
-
-		if (ac == 2)
-		{
-			if (my_getline(&line, &len, fileno(input)) == -1)
-				break;
-		}
-		else
-		{
-			if (my_getline(&line, &len, STDIN_FILENO) == -1)
-				break;
-		}
-
-		/* trim newline */
-		k = 0;
-		while (line[k] && line[k] != '\n')
-			k++;
-		line[k] = '\0';
-
-		if (line[0] == '\0' || only_spaces(line))
-			continue;
+		r = getline(&line, &cap, input);
+		if (r == -1)
+			break;
 
 		cmd_n++;
 
-		argc = split_line(line, argv, 64);
-		if (argc == 0 || argv[0] == NULL)
+		if (is_blank_line(line))
 			continue;
 
-		/* builtins */
+		argc = split_line(line, argv, MAX_ARGS);
+		if (argc == 0 || !argv[0])
+			continue;
+
+		/* builtin: exit [status] */
 		if (strcmp(argv[0], "exit") == 0)
 		{
-			int code;
+			int code = last_status;
 
-			if (argv[1] == NULL)
-			{
-				if (input != stdin)
-					fclose(input);
-				free(line);
-				exit(last_status);
-			}
+			if (argv[1] && is_number(argv[1]))
+				code = atoi(argv[1]);
 
-			if (!is_number(argv[1]))
-			{
-				write(2, av[0], _strlen(av[0]));
-				write(2, ": ", 2);
-				print_number(cmd_n);
-				write(2, ": exit: Illegal number: ", 24);
-				write(2, argv[1], _strlen(argv[1]));
-				write(2, "\n", 1);
-
-				if (input != stdin)
-					fclose(input);
-				free(line);
-				exit(2);
-			}
-
-			code = atoi(argv[1]) % 256;
+			free(line);
 			if (input != stdin)
 				fclose(input);
-			free(line);
-			exit(code);
+			return (code);
 		}
 
-		if (_strcmp(argv[0], "env") == 0)
+		/* builtin: env */
+		if (strcmp(argv[0], "env") == 0)
 		{
-			int e;
+			print_env();
+			last_status = 0;
+			continue;
+		}
 
-			if (environ != NULL)
+		/* execute: if contains '/', run as is */
+		if (strchr(argv[0], '/'))
+		{
+			struct stat st;
+
+			if (stat(argv[0], &st) != 0 || !S_ISREG(st.st_mode) || access(argv[0], X_OK) != 0)
 			{
-				for (e = 0; environ[e] != NULL; e++)
+				print_not_found(av[0], cmd_n, argv[0]);
+				last_status = 127;
+				if (!g_interactive)
 				{
-					write(1, environ[e], _strlen(environ[e]));
-					write(1, "\n", 1);
+					free(line);
+					if (input != stdin)
+						fclose(input);
+					return (127);
 				}
+				continue;
 			}
-			last_status = 0;
+
+			last_status = execute_cmd(argv);
 			continue;
 		}
 
-		if (strcmp(argv[0], "setenv") == 0)
+		/* PATH search (IMPORTANT: no fork if not found) */
 		{
-			if (argv[1] && argv[2] && !argv[3])
-				setenv(argv[1], argv[2], 1);
-			print_env();
-			last_status = 0;
-			continue;
-		}
+			char *full = find_in_path(argv[0]);
 
-		if (strcmp(argv[0], "unsetenv") == 0)
-		{
-			if (argv[1] && !argv[2])
-				unsetenv(argv[1]);
-			print_env();
-			last_status = 0;
-			continue;
-		}
-
-		/* resolve first, so we never fork if not found */
-		cmd_path = resolve_command(argv[0]);
-		if (cmd_path == NULL)
-		{
-			print_not_found(av[0], cmd_n, argv[0]);
-			last_status = 127;
-
-			if (!inter)
+			if (!full)
 			{
-				if (input != stdin)
-					fclose(input);
-				free(line);
-				exit(127);
+				print_not_found(av[0], cmd_n, argv[0]);
+				last_status = 127;
+				if (!g_interactive)
+				{
+					free(line);
+					if (input != stdin)
+						fclose(input);
+					return (127);
+				}
+				continue;
 			}
-			continue;
+
+			argv[0] = full;
+			last_status = execute_cmd(argv);
+			free(full);
 		}
-
-		pid = fork();
-		if (pid == -1)
-		{
-			perror("fork");
-			free(cmd_path);
-			last_status = 1;
-			continue;
-		}
-
-		if (pid == 0)
-		{
-			execve(cmd_path, argv, environ);
-			perror("execve");
-			exit(1);
-		}
-
-		waitpid(pid, &status, 0);
-		if (WIFEXITED(status))
-			last_status = WEXITSTATUS(status);
-		else
-			last_status = 1;
-
-		free(cmd_path);
 	}
 
+	free(line);
 	if (input != stdin)
 		fclose(input);
-	free(line);
+
 	return (last_status);
-}
+}}
