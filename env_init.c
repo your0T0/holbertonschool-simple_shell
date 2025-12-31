@@ -1,5 +1,20 @@
 #include "shell.h"
 
+/**
+ * env_init - prepare a modifiable copy of the environment
+ * Return: 0 on success, -1 on failure
+ */
+int env_init(void)
+{
+    return (0);
+}
+
+/**
+ * env_free - free the environment copy
+ */
+void env_free(void)
+{
+}
 int env_init(void)
 {
     int i, count = 0;

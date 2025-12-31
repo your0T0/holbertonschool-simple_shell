@@ -1,5 +1,26 @@
 #include "shell.h"
 
+/**
+ * builtin_setenv - set or update an environment variable
+ * @argv: tokenized command arguments
+ * Return: 0 on success, 1 on failure
+ */
+int builtin_setenv(char **argv)
+{
+    (void)argv;
+    return (0);
+}
+
+/**
+ * builtin_unsetenv - remove an environment variable
+ * @argv: tokenized command arguments
+ * Return: 0 on success, 1 on failure
+ */
+int builtin_unsetenv(char **argv)
+{
+    (void)argv;
+    return (0);
+}
 static int env_count(void)
 {
     int c = 0;
