@@ -47,7 +47,7 @@ int main(int ac, char **av)
 	int sp;
 	pid_t pid;
 	FILE *input;
-	signal(SIGINT, handle_sigint)
+	signal(SIGINT, handle_sigint);
 	cmd_n = 0;
 	last_status = 0;
 	line = NULL;
@@ -126,51 +126,11 @@ while (line[j])
 argv[i] = NULL;
 if (argv[0] == NULL)
 	continue;
-if (strcmp(argv[0], "env") == 0)
-{
-    int j = 0;
-
-    while (environ[j])
-    {
-        write(STDOUT_FILENO, environ[j], strlen(environ[j]));
-        write(STDOUT_FILENO, "\n", 1);
-        j++;
-    }
-    last_status = 0;
-    continue;
-}
 if (strcmp(argv[0], "exit") == 0)
 {
     free(line);
     exit(last_status);
-}
-if (strcmp(argv[0], "unsetenv") == 0)
-{
-    if (argv[1])
-        unsetenv(argv[1]);
-
-    last_status = 0;
-    continue;
 }            
-if (argv[1][idx] < '0' || argv[1][idx] > '9')
-            {
-                write(2, av[0], _strlen(av[0]));
-                write(2, ": ", 2);
-                print_number(cmd_n);
-                write(2, ": exit: Illegal number: ", 24);
-                write(2, argv[1], _strlen(argv[1]));
-                write(2, "\n", 1);
-                free(line);
-                exit(2);
-            }
-            n = n * 10 + (argv[1][idx] - '0');
-            idx++;
-        }
-        code = n % 256;
-    }
-    free(line);
-    exit(code);
-}
 if (_strcmp(argv[0], "env") == 0)
 {
 	k = 0;
@@ -183,6 +143,25 @@ if (_strcmp(argv[0], "env") == 0)
     last_status = 0;
     continue;
 }
+if (strcmp(argv[0], "setenv") == 0)
+{
+
+	if (argv[1] && argv[2] && !argv[3])
+		setenv(argv[1], argv[2], 1);
+
+	print_env();
+	last_status = 0;
+	continue;
+}
+if (strcmp(argv[0], "unsetenv") == 0)
+{
+    if (argv[1] && !argv[2])
+        unsetenv(argv[1]);
+
+    print_env();
+    last_status = 0;
+    continue;
+}
 has_slash = 0;
 for (i = 0; argv[0][i]; i++)
 {
@@ -192,6 +171,7 @@ for (i = 0; argv[0][i]; i++)
         break;
     }
 }
+
 if (has_slash)
 {
     if (stat(argv[0], &st) != 0 || !S_ISREG(st.st_mode) || access(argv[0], X_OK) != 0)
@@ -208,6 +188,7 @@ if (has_slash)
         last_status = 127;
         continue;
     }
+
     pid = fork();
     if (pid == -1)
     {
@@ -215,6 +196,7 @@ if (has_slash)
         last_status = 1;
         continue;
     }
+
     if (pid == 0)
     {
         execve(argv[0], argv, environ);
