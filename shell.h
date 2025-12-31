@@ -8,6 +8,15 @@
 #include <string.h>
 #include <sys/types.h>
 
+extern char **environ;
+
+/* env copy init/free */
+int env_init(void);
+void env_free(void);
+
+/* builtins */
+int builtin_setenv(char **argv);
+int builtin_unsetenv(char **argv)
 /* Function prototypes */
 ssize_t my_getline(char **lineptr, size_t *n, int fd);
 int _strcmp(char *s1, char *s2);
