@@ -1,26 +1,8 @@
 #include "shell.h"
 
-/**
- * builtin_setenv - set or update an environment variable
- * @argv: tokenized command arguments
- * Return: 0 on success, 1 on failure
- */
-int builtin_setenv(char **argv)
-{
-    (void)argv;
-    return (0);
-}
+extern char **environ;
 
-/**
- * builtin_unsetenv - remove an environment variable
- * @argv: tokenized command arguments
- * Return: 0 on success, 1 on failure
- */
-int builtin_unsetenv(char **argv)
-{
-    (void)argv;
-    return (0);
-}
+/* count env entries */
 static int env_count(void)
 {
     int c = 0;
@@ -30,14 +12,15 @@ static int env_count(void)
     return (c);
 }
 
+/* find index of NAME in environ (NAME without '=') */
 static int env_find(const char *name)
 {
     int i, len;
 
-    if (name == NULL)
+    if (!name)
         return (-1);
 
-    len = strlen(name);
+    len = (int)strlen(name);
     for (i = 0; environ && environ[i]; i++)
     {
         if (strncmp(environ[i], name, len) == 0 && environ[i][len] == '=')
@@ -48,7 +31,7 @@ static int env_find(const char *name)
 
 int builtin_setenv(char **argv)
 {
-    int idx, len1, len2, count, i;
+    int idx, count, i;
     char *new_str;
     char **new_env;
 
@@ -57,16 +40,15 @@ int builtin_setenv(char **argv)
         dprintf(2, "Usage: setenv VARIABLE VALUE\n");
         return (1);
     }
+
     if (argv[1][0] == '\0' || strchr(argv[1], '=') != NULL)
     {
         dprintf(2, "setenv: invalid variable name\n");
         return (1);
     }
 
-    len1 = strlen(argv[1]);
-    len2 = strlen(argv[2]);
-    new_str = malloc(len1 + len2 + 2);
-    if (new_str == NULL)
+    new_str = malloc(strlen(argv[1]) + strlen(argv[2]) + 2);
+    if (!new_str)
     {
         dprintf(2, "setenv: malloc failed\n");
         return (1);
@@ -83,7 +65,7 @@ int builtin_setenv(char **argv)
 
     count = env_count();
     new_env = malloc(sizeof(char *) * (count + 2));
-    if (new_env == NULL)
+    if (!new_env)
     {
         free(new_str);
         dprintf(2, "setenv: malloc failed\n");
@@ -96,6 +78,7 @@ int builtin_setenv(char **argv)
     new_env[count] = new_str;
     new_env[count + 1] = NULL;
 
+    /* environ is our malloc'ed copy (created by env_init), safe to free later */
     free(environ);
     environ = new_env;
 
