@@ -144,7 +144,15 @@ if (strcmp(argv[0], "exit") == 0)
     free(line);
     exit(last_status);
 }
-            if (argv[1][idx] < '0' || argv[1][idx] > '9')
+if (strcmp(argv[0], "unsetenv") == 0)
+{
+    if (argv[1])
+        unsetenv(argv[1]);
+
+    last_status = 0;
+    continue;
+}            
+if (argv[1][idx] < '0' || argv[1][idx] > '9')
             {
                 write(2, av[0], _strlen(av[0]));
                 write(2, ": ", 2);
