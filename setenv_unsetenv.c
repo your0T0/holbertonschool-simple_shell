@@ -53,3 +53,23 @@ int my_setenv(char *name, char *value)
     return (0);
 }
 
+int my_unsetenv(char *name)
+{
+	int i, j;
+
+	if (!name)
+		return (1);
+
+	for (i = 0; environ && environ[i]; i++)
+	{
+		if (match_env(environ[i], name))
+		{
+			free(environ[i]);
+			for (j = i; environ[j]; j++)
+				environ[j] = environ[j + 1];
+			return (0);
+		}
+	}
+	return (0);
+}
+
