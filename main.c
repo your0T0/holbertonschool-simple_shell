@@ -211,6 +211,31 @@ int main(int ac, char **av)
 			last_status = 0;
 			continue;
 		}
+/* builtin: setenv */
+if (_strcmp(argv[0], "setenv") == 0)
+{
+	if (!argv[1] || !argv[2])
+	{
+		write(2, "Usage: setenv VARIABLE VALUE\n", 29);
+		last_status = 1;
+	}
+	else
+		last_status = my_setenv(argv[1], argv[2]);
+	continue;
+}
+
+/* builtin: unsetenv */
+if (_strcmp(argv[0], "unsetenv") == 0)
+{
+	if (!argv[1])
+	{
+		write(2, "Usage: unsetenv VARIABLE\n", 25);
+		last_status = 1;
+	}
+	else
+		last_status = my_unsetenv(argv[1]);
+	continue;
+}
 
 		/* detect slash in command */
 		has_slash = 0;
