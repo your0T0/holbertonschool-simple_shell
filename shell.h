@@ -26,7 +26,8 @@ int builtin_unsetenv(char **argv);
 
 /* Function prototypes */
 ssize_t my_getline(char **lineptr, size_t *n, int fd);
-
+int my_setenv(char *name, char *value);
+int my_unsetenv(char *name);
 int _strcmp(char *s1, char *s2);
 int _strncmp(char *s1, char *s2, int n);
 size_t _strlen(char *s);
