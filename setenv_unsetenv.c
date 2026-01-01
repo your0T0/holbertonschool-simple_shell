@@ -46,8 +46,6 @@ int my_setenv(char *name, char *value)
 
     new_env[count] = new_var;
     new_env[count + 1] = NULL;
-
-    free(environ);
     environ = new_env;
 
     return (0);
