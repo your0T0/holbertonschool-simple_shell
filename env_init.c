@@ -1,5 +1,6 @@
 #include "shell.h"
 
+extern char **environ;
 int env_dynamic = 0;
 
 /**

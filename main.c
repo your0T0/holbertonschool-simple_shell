@@ -123,7 +123,7 @@ int main(int ac, char **av)
 	}
 
 	inter = isatty(STDIN_FILENO) && (input == stdin);
-if (env_init() == -1)
+	if (env_init() == -1)
 {
     perror(av[0]);
     exit(1);
@@ -140,7 +140,10 @@ if (env_init() == -1)
 			write(2, "($) ", 4);
 
 		if (my_getline(&line, &len, (input == stdin) ? STDIN_FILENO : fileno(input)) == -1)
-			break;
+{
+    env_free();
+    break;
+}
 
 		/* remove trailing newline */
 		k = 0;

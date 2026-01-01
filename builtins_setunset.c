@@ -1,6 +1,7 @@
 #include "shell.h"
 
 extern char **environ;
+extern int env_dynamic;
 
 /* count env entries */
 static int env_count(void)
@@ -55,12 +56,26 @@ int builtin_setenv(char **argv)
     }
     sprintf(new_str, "%s=%s", argv[1], argv[2]);
 
+    /* if exists: replace */
     idx = env_find(argv[1]);
     if (idx != -1)
     {
+        if (!env_dynamic)
+        {
+            /* safety: should not modify original environ */
+            free(new_str);
+            return (1);
+        }
         free(environ[idx]);
         environ[idx] = new_str;
         return (0);
+    }
+
+    /* if not exists: append */
+    if (!env_dynamic)
+    {
+        free(new_str);
+        return (1);
     }
 
     count = env_count();
@@ -78,12 +93,9 @@ int builtin_setenv(char **argv)
     new_env[count] = new_str;
     new_env[count + 1] = NULL;
 
-    /* environ is our malloc'ed copy (created by env_init), safe to free later */
-    if (env_dynamic)
-    free(environ);
+    free(environ);          /* free only the array (not the strings) */
+    environ = new_env;
 
-environ = new_env;
-env_dynamic = 1;
     return (0);
 }
 
@@ -101,12 +113,10 @@ int builtin_unsetenv(char **argv)
     if (idx == -1)
         return (0);
 
+    if (!env_dynamic)
+        return (1);
+
     free(environ[idx]);
-count = env_count();
-for (i = idx; i < count; i++)
-    environ[i] = environ[i + 1];
-return (0);
-free(environ[idx]);
 
     count = env_count();
     for (i = idx; i < count; i++)
