@@ -123,7 +123,11 @@ int main(int ac, char **av)
 	}
 
 	inter = isatty(STDIN_FILENO) && (input == stdin);
-
+if (env_init() == -1)
+{
+    perror(av[0]);
+    exit(1);
+}
 	while (1)
 	{
 		struct stat st;
@@ -195,6 +199,7 @@ int main(int ac, char **av)
 			line = NULL;
 			if (input != stdin)
 				fclose(input);
+			env_free();
 			exit(last_status);
 		}
 
@@ -212,6 +217,19 @@ int main(int ac, char **av)
 			continue;
 		}
 
+		/* builtin: setenv */
+if (_strcmp(argv[0], "setenv") == 0)
+{
+    last_status = builtin_setenv(argv);
+    continue;
+}
+
+/* builtin: unsetenv */
+if (_strcmp(argv[0], "unsetenv") == 0)
+{
+    last_status = builtin_unsetenv(argv);
+    continue;
+}
 		/* detect slash in command */
 		has_slash = 0;
 		for (i = 0; argv[0][i]; i++)
@@ -288,5 +306,6 @@ int main(int ac, char **av)
 	if (input != stdin)
 		fclose(input);
 	free(line);
+	env_free();
 	return (last_status);
 }

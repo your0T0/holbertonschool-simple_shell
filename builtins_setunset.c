@@ -79,9 +79,11 @@ int builtin_setenv(char **argv)
     new_env[count + 1] = NULL;
 
     /* environ is our malloc'ed copy (created by env_init), safe to free later */
+    if (env_dynamic)
     free(environ);
-    environ = new_env;
 
+environ = new_env;
+env_dynamic = 1;
     return (0);
 }
 
@@ -100,6 +102,11 @@ int builtin_unsetenv(char **argv)
         return (0);
 
     free(environ[idx]);
+count = env_count();
+for (i = idx; i < count; i++)
+    environ[i] = environ[i + 1];
+return (0);
+free(environ[idx]);
 
     count = env_count();
     for (i = idx; i < count; i++)

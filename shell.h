@@ -15,7 +15,7 @@
 #include <stdarg.h>
 
 extern char **environ;
-
+extern int env_dynamic;
 /* env copy init/free */
 int env_init(void);
 void env_free(void);
